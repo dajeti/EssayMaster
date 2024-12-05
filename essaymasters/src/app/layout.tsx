@@ -13,7 +13,6 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-
 export const metadata: Metadata = {
   title: "Essay Master",
   description: "Essay Master is a platform for students to get help with their essays.",

@@ -1,9 +1,54 @@
 import Image from "next/image";
 import Layout from "./layout";
+import React, { useState } from 'react';
+import FAQheader from "./header";
+import FAQ from "./FAQ";
 
+function Home() {
+    const [faq, setfaqs] = useState ([
+      {
+        question: "What is EssayMasters",
+        answer:'Essay Master is a platform for students to get help with their essays',
+        open: true 
+      },
+      {
+        question: "What is EssayMasters",
+        answer:'Essay Master is a platform for students to get help with their essays',
+        open: false 
+      },
+      {
+        question: "What is EssayMasters",
+        answer:'Essay Master is a platform for students to get help with their essays',
+        open: false
+      },
+      {
+        question: "What is EssayMasters",
+        answer:'Essay Master is a platform for students to get help with their essays',
+        open: false
+      },
+      {
+        question: "What is EssayMasters",
+        answer:'Essay Master is a platform for students to get help with their essays',
+        open: false
+      },
+    ]);
+  
   return (
+    <div className="header">
+      <FAQheader />
+      <div className="FAQ">
+        {faq.map((faqs, i) => (
+          <div>
+            {faqs.question}
+          </div> 
+      ))}
+      </div>
+    </div>  
+  );
+}
 
-    <Layout>
+
+/*<Layout>
 
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       
@@ -101,6 +146,4 @@ import Layout from "./layout";
         </a>
       </footer>
     </div>
-    </Layout>
-  );
-}
+    </Layout> * }/
