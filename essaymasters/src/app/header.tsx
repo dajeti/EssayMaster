@@ -4,7 +4,6 @@ function FAQheader() {
         <header>
             <h1>FAQ Page</h1>
         </header>
-
     );
 }
 
