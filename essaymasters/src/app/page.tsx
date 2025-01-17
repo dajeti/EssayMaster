@@ -109,9 +109,9 @@ export default function Home() {
       <header className="w-full flex justify-between items-center p-4 bg-blue-500 text-white">
         <img src="/favicon.ico" alt="Logo" className="w-10 h-10" />
         <nav className="flex space-x-4">
-          <a href="#" className="hover:underline">Home</a>
-          <a href="#" className="hover:underline">About</a>
-          <a href="#" className="hover:underline">FAQ</a>
+          <a href="#" id="HomePage" className="hover:underline">Home</a>
+          <a href="#" id="AboutPage" className="hover:underline">About</a>
+          <a href="#" id="FaqPage" className="hover:underline">FAQ</a>
         </nav>
         <div className="flex space-x-4">
           <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">☀️</button>
