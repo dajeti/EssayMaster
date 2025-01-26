@@ -108,7 +108,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <header className="w-full flex justify-between items-center p-4 bg-blue-500 text-white">
         <img src="/favicon.ico" alt="Logo" className="w-10 h-10" />
-        <nav className="flex space-x-4">
+        <nav className="TabBtn space-between flex space-x-10">
           <a href="#" id="HomePage" className="hover:underline">Home</a>
           <a href="#" id="AboutPage" className="hover:underline">About</a>
           <a href="#" id="FaqPage" className="hover:underline">FAQ</a>
