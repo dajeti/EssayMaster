@@ -103,10 +103,15 @@
 
 import React from "react";
 
+import Header from "./Components/Header";
+
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
-      <header className="w-full flex justify-between items-center p-4 bg-blue-500 text-white">
+    <div className="flex flex-col bg-white items-center justify-center min-h-screen p-6">
+
+<Header />
+
+      {/* <header className="w-full flex justify-between items-center p-4 bg-blue-500 text-white">
         <img src="/favicon.ico" alt="Logo" className="w-10 h-10" />
         <nav className="flex space-x-4">
           <a href="#" className="hover:underline">Home</a>
@@ -117,7 +122,7 @@ export default function Home() {
           <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">☀️</button>
           <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">👤</button>
         </div>
-      </header>
+      </header> */}
 
       <main className="flex flex-col items-center mt-8 w-full">
         <div className="bg-blue-100 p-4 w-4/5 max-w-2xl rounded-lg shadow-lg">

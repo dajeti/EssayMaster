@@ -9,6 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'blue-custom': '#0072CD', // Main blue color in light mode
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
