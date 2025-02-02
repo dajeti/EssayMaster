@@ -31,7 +31,7 @@ export default function Home() {
         </p>
 
         <p className="flex pt-8 flex-col items-center text-left text-lg text-black">
-          If you need technical support please contact us on the following email address:
+        Need technical support or have suggestions to enhance your experience (and others')? Reach out to us at the following email address:
         </p>
 
         <a
