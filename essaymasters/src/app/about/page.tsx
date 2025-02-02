@@ -35,11 +35,11 @@ export default function Home() {
         </p>
 
         <a
-          href="mailto:EssayMasterITSupport@gmail.com"
+          href="mailto:EssayMasters1@outlook.com"
           title="Email us"
           className="font-normal text-blue-500 flex flex-col items-center text-left text-lg pt-4 hover:underline"
         >
-          EssayMasterITSupport@gmail.com
+          EssayMasters1@outlook.com
         </a>
 
       </main>
