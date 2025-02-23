@@ -34,23 +34,23 @@
 //   );
 // }
 
+// layout.tsx (Server Component)
+import "./globals.css"; // Global styles
+import ClientLayout from "./clientLayout"; // Import the client layout
 
-import type { Metadata } from "next";
-import "./globals.css";
-
-export const metadata: Metadata = {
+// Server-side metadata export
+export const metadata = {
   title: "Essay Master",
   description: "A platform for essay assistance",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-white dark:bg-black min-h-screen">{children}</body>
+      <body className="bg-white dark:bg-black min-h-screen">
+        <ClientLayout>{children}</ClientLayout> {/* Use the ClientLayout here */}
+      </body>
     </html>
   );
 }
+
