@@ -10,24 +10,36 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Send user data to your registration API
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-      alert("Registration successful!");
-      router.push("/login"); // Redirect to the login page after successful registration
-    } else {
-      alert("Registration failed: " + result.message);
+  
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+  
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        alert("Registration successful!");
+        router.push("/login"); // Redirect to the login page after successful registration
+      } else {
+        console.error("Registration failed:", result);
+        alert("Registration failed: " + (result.error || result.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

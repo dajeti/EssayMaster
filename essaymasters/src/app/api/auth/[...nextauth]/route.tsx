@@ -1,55 +1,43 @@
-import CredentialsProvider from "next-auth/providers/credentials";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import prisma from "../../../../lib/prisma"; // Correct relative import path
-import NextAuth from "next-auth";
+import prisma from "@/lib/prisma";
 
-export const authOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    console.log("Received body:", body); // Debugging: Check if data is received properly
+
+    const { email, password } = body;
+
+    if (!email || !password) {
+      console.log("Missing email or password");
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      console.log("User already exists");
+      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user in database
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
       },
-      async authorize(credentials) {
-        // Find user by email
-        const user = await prisma.user.findUnique({
-          where: { email: credentials?.email },
-        });
+    });
 
-        // If no user or password doesn't match, return null
-        if (!user || !bcrypt.compareSync(credentials?.password || "", user.password)) {
-          return null;
-        }
+    console.log("User created successfully:", newUser);
+    return NextResponse.json({ message: "User registered successfully" }, { status: 201 });
 
-        return user; // Return the user if authenticated
-      },
-    }),
-  ],
-  pages: {
-    signIn: "/login", // Custom login page if needed
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      // On sign in, add user info to the JWT token
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      // Add user info to the session
-      if (token) {
-        session.user.id = token.id;
-        session.user.email = token.email;
-      }
-      return session;
-    },
-  },
-  secret: process.env.NEXTAUTH_SECRET, // Make sure this is set in your .env file
-};
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };
+  } catch (error) {
+    console.error("Error registering user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
