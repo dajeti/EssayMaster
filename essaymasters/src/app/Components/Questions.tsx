@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ThemeProvider } from "next-themes";
+
 
 const Questions = () => {
   const [activeQuestion, setActiveQuestion] = useState<number>(-1);
@@ -61,25 +63,26 @@ const Questions = () => {
   };
 
   return (
+    <ThemeProvider attribute="class">
     <main className="flex items-center justify-center">
         
       <div className="w-full max-w-3xl shadow-2xl rounded-lg">
         {questions.map((q, index) => (
           <div
             key={q.id}
-            className="hover:pointer flex w-full rounded-lg cursor-pointer flex-col border-b-2 py-4 font-sans bg-blue-custom last:dark:border-none"
+            className="hover:pointer flex w-full rounded-lg cursor-pointer flex-col border-b-2 py-4 font-sans text-white bg-blue-custom dark:bg-blue-custom-dark last:dark:border-none"
             onClick={() => handleQuestionClick(index)}
           >
             <div className="flex items-center">
-              <button className="px-2 py-2 text-3xl font-bold text-[#01243d] opacity-90 dark:text-white lg:px-4">
+              <button className="px-2 py-2 text-3xl font-bold opacity-90 dark:text-white lg:px-4">
                 {activeQuestion === index ? "-" : "+"}
               </button>
-              <h1 className="px-2 text-left text-lg font-semibold text-[#01243d] opacity-90 hover:underline dark:text-white lg:ml-4">
+              <h1 className="px-2 text-left text-lg font-semibold opacity-90 hover:underline dark:text-white lg:ml-4">
                 {q.question}
               </h1>
             </div>
             {activeQuestion === index && (
-              <div className="px-4 text-left text-[#01243d] opacity-90 dark:text-slate-300 lg:mx-10">
+              <div className="px-4 text-left opacity-90 text-slate-300 dark:text-slate-300 lg:mx-10">
                 {q.answer}
               </div>
             )}
@@ -87,6 +90,7 @@ const Questions = () => {
         ))}
       </div>
     </main>
+    </ThemeProvider>
   );
 };
 

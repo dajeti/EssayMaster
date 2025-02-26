@@ -2,10 +2,12 @@ import React from 'react';
 import Image from 'next/image';
 import Navigation from './Navigation';
 import DropdownButton from './DropdownButton';
+import { ThemeProvider } from "next-themes";
 
 const Header = () => {
   return (
-    <div className="fixed top-0 z-[100] h-20 w-full flex justify-between border-b border-gray-300 bg-blue-custom px-5 md:px-[8rem] lg:px-[15rem]">
+    <ThemeProvider attribute="class">
+    <div className="fixed top-0 z-[100] h-20 w-full flex justify-between border-b border-gray-300 bg-blue-custom dark:bg-blue-custom-dark px-5 md:px-[8rem] lg:px-[15rem]">
       <div className="z-[101] flex items-center">
 
         <Image 
@@ -24,6 +26,7 @@ const Header = () => {
         
       </div>
     </div>
+    </ThemeProvider>
   );
 };
 
