@@ -1,4 +1,7 @@
 // import Image from "next/image";
+import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
+import { SparklesIcon } from "@heroicons/react/16/solid";
+import { ThemeProvider } from "next-themes";
 
 // export default function Home() {
 //   return (
@@ -107,8 +110,8 @@ import Header from "./Components/Header";
 
 export default function Home() {
   return (
-    <div className="flex flex-col bg-white items-center justify-center min-h-screen p-6">
-
+<ThemeProvider attribute="class">
+    <div className="flex flex-col bg-white dark:bg-darker-custom items-center justify-center min-h-screen p-6">
 <Header />
 
       {/* <header className="w-full flex justify-between items-center p-4 bg-blue-500 text-white">
@@ -125,28 +128,35 @@ export default function Home() {
       </header> */}
 
       <main className="flex flex-col items-center mt-8 w-full">
-        <div className="bg-blue-100 p-4 w-4/5 max-w-2xl rounded-lg shadow-lg">
-          <h1 className="text-center text-lg font-bold text-blue-600">Essay Master</h1>
+        <div className="bg-blue-100 dark:bg-blue-custom-dark p-4 w-4/5 max-w-2xl rounded-lg shadow-lg">
+          <h1 className="text-center text-lg font-bold text-blue-600 dark:text-white">Essay Master</h1>
           <textarea
             rows={10}
-            className="w-full mt-4 p-2 border rounded-lg"
+            className="w-full mt-4 p-2 border text-black dark:text-white bg-white dark:bg-darker-custom rounded-lg"
             placeholder="Write or paste your essay here..."
           ></textarea>
-          <div className="flex space-x-2 mt-4 justify-between">
-            <button className="flex-1 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Upload Essay</button>
-            <button className="flex-1 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Generate</button>
+          <div className="flex space-x-10 mt-4 justify-center">
+            <button className="flex p-2 pl-6 pr-6 bg-blue-500 dark:bg-darker-custom text-white rounded-lg hover:bg-blue-600">Upload Essay
+
+              <ArrowUpOnSquareIcon className="h-6 w-6 ml-2" />
+            </button>
+            <button className="flex p-2 pl-6 pr-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-darker-custom">Generate
+
+              <SparklesIcon className="h-6 w-6 ml-2" />
+            </button>
           </div>
         </div>
 
         <div className="flex flex-wrap space-x-4 mt-6">
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Make it Formal</button>
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Make it Informal</button>
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Make it Longer</button>
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Make it Shorter</button>
-          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Make it Custom</button>
+          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-custom-dark">Make it Formal</button>
+          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-custom-dark">Make it Informal</button>
+          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-custom-dark">Make it Longer</button>
+          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-custom-dark">Make it Shorter</button>
+          <button className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-custom-dark">Make it Custom</button>
         </div>
       </main>
     </div>
+      </ThemeProvider>
   );
 }
 

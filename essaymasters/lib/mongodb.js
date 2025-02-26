@@ -14,17 +14,17 @@ async function connectDB() {
     await client.connect();
     console.log('Connected to MongoDB Atlas');
 
-    // Example: Get a specific collection
+    
     const database = client.db('essaymasterdb');
     const collection = database.collection('sample_mflix');
 
-    // Example: Find documents in the collection
+    
     const docs = await collection.find({}).toArray();
     console.log('Documents:', docs);
   } catch (err) {
     console.error('Error connecting to MongoDB:', err);
   } finally {
-    // Ensure you close the client when done
+    
     await client.close();
   }
 }
