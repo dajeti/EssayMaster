@@ -10,31 +10,23 @@ export default function Home() {
     <div className="flex flex-col bg-white dark:bg-darker-custom items-center justify-center min-h-screen p-6">
 
       <Header />
-
-      <main className="flex flex-col items-center mt-8 w-96">
+      
+      <main className="flex flex-col items-center pt-12 w-96">
         <p className="flex flex-col items-center text-left text-lg text-black dark:text-white">
-          Lorem ipsum dolor sit amet, consectetur
-          adipiscing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna aliqua.
+        EssayMaster is a web app that helps students improve their essay-writing with AI-powered feedback. 
+        Users can upload essays as PDFs or text and choose from features like grammar, clarity, tone, and length. 
+        It provides detailed feedback for each edit and grades essays across categories. A built-in scoring system tracks progress, 
+        making learning measurable and rewarding.
         </p>
 
-        <p className="flex pt-4 flex-col items-center text-left text-lg text-black dark:text-white">
-          Ut enim ad minim veniam, quis nostrud
-          exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </p>
-
-        <p className="flex pt-4 flex-col items-center text-left text-lg text-black dark:text-white">
-          Duis aute irure dolor in reprehenderit in voluptate
-          velit esse cillum dolore eu fugiat nulla pariatur.
-          Excepteur sint occaecat cupidatat non proident, sunt
-          in culpa qui officia deserunt mollit anim id est laborum.
-        </p>
+  
+        
+        <br /><h2 className="text-black dark:text-white">========================================</h2>
 
         <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white">
         Need technical support or have suggestions to enhance your experience (and others&apos;)? Reach out to us at the following email address:
         </p>
-
+        
         <a
           href="mailto:EssayMasters1@outlook.com"
           title="Email us"
