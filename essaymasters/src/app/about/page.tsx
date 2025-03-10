@@ -21,7 +21,7 @@ export default function Home() {
 
   
         
-        <br /><h2>========================================</h2>
+        <br /><h2 className="text-black dark:text-white">========================================</h2>
 
         <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white">
         Need technical support or have suggestions to enhance your experience (and others&apos;)? Reach out to us at the following email address:
