@@ -10,13 +10,13 @@ const Questions = () => {
   const questions = [
     {
       id: 0,
-      question: "How does EssayMaster's Ai analyse my essay",
+      question: "How does EssayMaster's AI analyse my essay",
       answer:
-        "EssayMaster's Ai reviews your essay by checking for errors in grammar, tone, clarity, and length. It then provides feedback on how to improve these aspects, offering specific suggestions for each issue.",
+        "EssayMaster's AI reviews your essay by checking for errors in grammar, tone, clarity, and length. It then provides feedback on how to improve these aspects, offering specific suggestions for each issue.",
     },
     {
         id: 1,
-        question: "What file formats can I to EssayMaster?",
+        question: "What file formats can I upload to EssayMaster?",
         answer:
           "You can upload your essay as either a text input or a PDF file. The system can process both formats for analysis and feedback.",
       },
