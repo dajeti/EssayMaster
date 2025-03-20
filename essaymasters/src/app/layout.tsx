@@ -35,20 +35,23 @@
 // }
 
 // layout.tsx (Server Component)
-import "./globals.css"; // Global styles
-import ClientLayout from "./clientLayout"; // Import the client layout
+import "./globals.css";
+import ClientLayout from "./clientLayout";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
-// Server-side metadata export
 export const metadata = {
   title: "Essay Master",
   description: "A platform for essay assistance",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions); // Fetch session on the server
+
   return (
     <html lang="en">
       <body className="bg-white dark:bg-black min-h-screen">
-        <ClientLayout>{children}</ClientLayout> {/* Use the ClientLayout here */}
+        <ClientLayout session={session}>{children}</ClientLayout> {/* Pass session */}
       </body>
     </html>
   );

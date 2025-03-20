@@ -19,19 +19,15 @@ export default function RegisterPage() {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
   
       const result = await response.json();
-  
       if (response.ok) {
         alert("Registration successful!");
-        router.push("/login"); // Redirect to the login page after successful registration
+        router.push("/login");
       } else {
-        console.error("Registration failed:", result);
         alert("Registration failed: " + (result.error || result.message || "Unknown error"));
       }
     } catch (error) {
@@ -39,6 +35,8 @@ export default function RegisterPage() {
       alert("Something went wrong. Please try again.");
     }
   };
+  
+  
   
 
   return (
