@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
-/** 
+/**
  * 1) Define how feedback suggestions look:
  *    - 'id': unique string
  *    - 'snippet': portion of text we want to highlight
@@ -121,7 +121,9 @@ export default function TabsPanel({ essay }: { essay: string }) {
   }
 
   // Markscheme upload (optional)
-  async function handleMarkschemeUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleMarkschemeUpload(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
@@ -132,9 +134,12 @@ export default function TabsPanel({ essay }: { essay: string }) {
     }
   }
 
-  // highlightSnippets(suggestions, [hoveringId?]) 
+  // highlightSnippets(suggestions, [hoveringId?])
   // Replaces snippet with <mark> in `highlightedEssay`
-  function highlightSnippets(sugList: FeedbackSuggestion[], hoveringId?: string) {
+  function highlightSnippets(
+    sugList: FeedbackSuggestion[],
+    hoveringId?: string
+  ) {
     // Start from the raw essay text (no highlights)
     let newText = essay;
 
@@ -149,7 +154,8 @@ export default function TabsPanel({ essay }: { essay: string }) {
       const snippetRegex = new RegExp(sug.snippet, "i");
 
       // If we're hovering over this suggestion, use a brighter color
-      const colorClass = hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
+      const colorClass =
+        hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
 
       newText = newText.replace(
         snippetRegex,
@@ -373,3 +379,4 @@ export default function TabsPanel({ essay }: { essay: string }) {
     </div>
   );
 }
+//
