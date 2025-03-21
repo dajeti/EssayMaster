@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import React from "react";
 import Header from "./Components/Header";
 import EssayForm from "./Components/EssayForm";
+import TabsPanel from "./Components/TabsPanel";
 
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         <Header />
         <main className="flex-1 flex justify-center p-6">
           <EssayForm />
+          <TabsPanel/>
         </main>
       </div>
     </ThemeProvider>
