@@ -2,163 +2,194 @@
 
 import React, { useState, ChangeEvent } from "react";
 
-export interface FeedbackSuggestion {
+/**
+ * We'll define a "FeedbackSuggestion" interface
+ * Each suggestion has:
+ *   - id
+ *   - snippet (the part of the essay to highlight)
+ *   - advice (the feedback message)
+ *   - resolved (whether user marked it resolved)
+ */
+interface FeedbackSuggestion {
   id: string;
   snippet: string;
   advice: string;
   resolved: boolean;
 }
 
-interface TabsPanelProps {
-  rawEssay: string;
-  highlightSnippets: (
-    suggestions: FeedbackSuggestion[],
-    hoveringId?: string
-  ) => void;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export default function TabsPanel({
-  rawEssay,
-  highlightSnippets,
-  setIsLoading,
-}: TabsPanelProps) {
+/**
+ * PROPS:
+ *  - `essay`: the text from <EssayForm> (the single text area)
+ */
+export default function TabsPanel({ essay }: { essay: string }) {
+  // Which tab is active
   const [activeTab, setActiveTab] = useState<"FEEDBACK" | "CHAT">("FEEDBACK");
-  const [markscheme, setMarkscheme] = useState<string>("");
-  const [score, setScore] = useState<string>("N/A");
+
+  // For the FEEDBACK tab
+  const [markscheme, setMarkscheme] = useState("");
+  const [score, setScore] = useState("N/A");
   const [feedbackSuggestions, setFeedbackSuggestions] = useState<
     FeedbackSuggestion[]
   >([]);
+  const [displayedEssay, setDisplayedEssay] = useState(essay); // We'll store a highlighted version here
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
-  // Chat
+  // For the CHAT tab
   const [chatMessages, setChatMessages] = useState<
     { sender: "user" | "ai"; text: string }[]
   >([]);
   const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
-  // Local loading indicator
-  const [localLoading, setLocalLoading] = useState(false);
-  const isLoading = localLoading; // combined with parent's setIsLoading
+  // Re-run whenever parent `essay` changes: reset displayedEssay
+  React.useEffect(() => {
+    // If user changes the essay in the left text area,
+    // we drop any existing highlights:
+    setDisplayedEssay(essay);
+  }, [essay]);
 
-  // ─────────────────────────────────────────────────────────────────
   // TAB SWITCH
-  // ─────────────────────────────────────────────────────────────────
-  const switchTab = (tabName: "FEEDBACK" | "CHAT") => {
-    setActiveTab(tabName);
+  const switchTab = (tab: "FEEDBACK" | "CHAT") => {
+    setActiveTab(tab);
   };
 
   // ─────────────────────────────────────────────────────────────────
-  // FEEDBACK
+  // FEEDBACK TAB
   // ─────────────────────────────────────────────────────────────────
   const handleMarkschemeUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     try {
       const text = await file.text();
       setMarkscheme(text);
       alert("Markscheme uploaded successfully!");
     } catch (error) {
-      alert("Failed to read the markscheme file: " + (error as Error).message);
+      alert("Failed to read the markscheme: " + (error as Error).message);
     }
   };
 
+  // Replaces snippet with <mark> in displayedEssay
+  // Called whenever we get new suggestions or hover
+  function highlightSnippets(
+    suggestions: FeedbackSuggestion[],
+    hoveringId?: string
+  ) {
+    // Start from the unhighlighted essay text
+    let newText = essay;
+
+    // Only highlight unresolved suggestions
+    const active = suggestions.filter((s) => !s.resolved);
+
+    // Sort by snippet length (desc) so longer matches are replaced first
+    active.sort((a, b) => b.snippet.length - a.snippet.length);
+
+    for (const sug of active) {
+      // A naive approach: find first occurrence (case-insensitive)
+      const snippetRegex = new RegExp(sug.snippet, "i");
+
+      // If hovered, highlight in bright color; else faint color
+      const colorClass =
+        hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
+
+      newText = newText.replace(
+        snippetRegex,
+        `<mark class="${colorClass}">${sug.snippet}</mark>`
+      );
+    }
+
+    setDisplayedEssay(newText);
+  }
+
   const handleGenerateFeedback = async () => {
-    if (!rawEssay.trim()) {
+    if (!essay.trim()) {
       alert("No essay text found. Please paste or upload first.");
       return;
     }
-    setLocalLoading(true);
-    setIsLoading(true);
 
+    setFeedbackLoading(true);
     try {
       const response = await fetch("/api/generateFeedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ essay: rawEssay, markscheme }),
+        body: JSON.stringify({ essay, markscheme }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("generateFeedback error details:", errorText);
-        throw new Error(
-          `generateFeedback request failed with status ${response.status}`
-        );
+        console.error("generateFeedback error detail:", errorText);
+        throw new Error(`Request failed with status ${response.status}`);
       }
 
       const data = await response.json();
       setScore(data.score || "N/A");
 
-      const sugs: FeedbackSuggestion[] = data.suggestions || [];
-      // Mark them all unresolved
-      sugs.forEach((s) => (s.resolved = false));
-      setFeedbackSuggestions(sugs);
+      // Suppose data.suggestions is an array of { id, snippet, advice }
+      const suggestions: FeedbackSuggestion[] = data.suggestions || [];
+      suggestions.forEach((sug) => (sug.resolved = false));
+      setFeedbackSuggestions(suggestions);
 
       // Immediately highlight them
-      highlightSnippets(sugs);
+      highlightSnippets(suggestions);
     } catch (err: any) {
       console.error("Error generating feedback:", err);
       alert("Error generating feedback: " + err.message);
     } finally {
-      setLocalLoading(false);
-      setIsLoading(false);
+      setFeedbackLoading(false);
     }
   };
 
-  const handleSuggestionHover = (id?: string) => {
-    highlightSnippets(feedbackSuggestions, id);
+  // On hover, highlight that snippet more strongly
+  const handleSuggestionHover = (sugId?: string) => {
+    highlightSnippets(feedbackSuggestions, sugId);
   };
 
+  // Mark a suggestion resolved => remove highlight
   const markResolved = (id: string) => {
-    const updated = feedbackSuggestions.map((s) =>
-      s.id === id ? { ...s, resolved: true } : s
+    const updated = feedbackSuggestions.map((sug) =>
+      sug.id === id ? { ...sug, resolved: true } : sug
     );
     setFeedbackSuggestions(updated);
     highlightSnippets(updated);
   };
 
   // ─────────────────────────────────────────────────────────────────
-  // CHAT
+  // CHAT TAB
   // ─────────────────────────────────────────────────────────────────
   const handleChatSubmit = async () => {
     const prohibitedPhrases = ["write an essay", "entire essay", "full essay"];
-    const lowerInput = chatInput.toLowerCase();
-    if (prohibitedPhrases.some((phrase) => lowerInput.includes(phrase))) {
+    if (
+      prohibitedPhrases.some((phrase) =>
+        chatInput.toLowerCase().includes(phrase)
+      )
+    ) {
       alert("Requests for a full essay are not allowed.");
       return;
     }
 
-    const updatedMessages = [
-      ...chatMessages,
-      { sender: "user", text: chatInput },
-    ];
-    setChatMessages(updatedMessages);
+    // Add user message
+    const newMessages = [...chatMessages, { sender: "user", text: chatInput }];
+    setChatMessages(newMessages);
 
-    setLocalLoading(true);
-    setIsLoading(true);
-
+    setChatLoading(true);
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: chatInput }),
       });
-
       if (!response.ok) {
         const errText = await response.text();
-        console.error("chat request error details:", errText);
-        throw new Error(`Chat request failed with status ${response.status}`);
+        console.error("Chat error detail:", errText);
+        throw new Error(`Chat failed with status ${response.status}`);
       }
 
       const data = await response.json();
-      const aiReply = data.response || "No response";
-      setChatMessages((msgs) => [...msgs, { sender: "ai", text: aiReply }]);
+      const aiReply = data.response || "No response.";
+      setChatMessages((prev) => [...prev, { sender: "ai", text: aiReply }]);
     } catch (err: any) {
       console.error("Error in chat request:", err);
       alert("Error in chat request: " + err.message);
     } finally {
-      setLocalLoading(false);
-      setIsLoading(false);
+      setChatLoading(false);
       setChatInput("");
     }
   };
@@ -192,13 +223,14 @@ export default function TabsPanel({
         </button>
       </div>
 
-      {isLoading && (
+      {/* Show "Processing..." if either tab is loading */}
+      {(feedbackLoading || chatLoading) && (
         <div className="text-center text-blue-600 mb-1 whitespace-nowrap">
           Processing...
         </div>
       )}
 
-      {/* Feedback Panel */}
+      {/* FEEDBACK TAB CONTENT */}
       {activeTab === "FEEDBACK" && (
         <div className="flex-1 overflow-auto p-3 border rounded bg-white">
           <h2 className="font-bold text-lg mb-2">Generate Feedback</h2>
@@ -225,15 +257,24 @@ export default function TabsPanel({
             </button>
           </div>
 
+          {/* Display the “highlighted” essay text in a read-only box */}
+          <div className="mt-4 border rounded p-2 bg-gray-50">
+            <h3 className="font-semibold mb-1">Highlighted Essay (Read-Only)</h3>
+            <div
+              className="text-sm leading-relaxed text-black"
+              dangerouslySetInnerHTML={{ __html: displayedEssay }}
+            />
+          </div>
+
           {/* Suggestions list */}
-          <div className="mt-4 space-y-3">
+          <div className="mt-4">
             {feedbackSuggestions.length > 0 && (
               <div className="font-bold mb-2">Suggestions:</div>
             )}
             {feedbackSuggestions.map((sug) => (
               <div
                 key={sug.id}
-                className={`p-2 border rounded transition-colors ${
+                className={`p-2 border rounded mb-2 transition-colors ${
                   sug.resolved
                     ? "bg-gray-200 text-gray-500"
                     : "bg-gray-50 text-black hover:bg-gray-100"
@@ -245,6 +286,7 @@ export default function TabsPanel({
                   Snippet: <em>{sug.snippet}</em>
                 </div>
                 <div className="mt-1 text-sm">{sug.advice}</div>
+
                 {!sug.resolved && (
                   <button
                     className="mt-2 px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
@@ -259,7 +301,7 @@ export default function TabsPanel({
         </div>
       )}
 
-      {/* Chat Panel */}
+      {/* CHAT TAB CONTENT */}
       {activeTab === "CHAT" && (
         <div className="flex flex-col flex-1 p-3 border rounded bg-white">
           <h2 className="font-bold text-lg mb-2">Chat</h2>
@@ -289,6 +331,7 @@ export default function TabsPanel({
             ))}
           </div>
 
+          {/* Chat input */}
           <div className="flex items-center">
             <input
               type="text"

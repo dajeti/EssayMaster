@@ -3,28 +3,29 @@
 import { useState } from "react";
 import LoadingModal from "./LoadingModal";
 import * as pdfjsLib from "pdfjs-dist";
-import TabsPanel, { FeedbackSuggestion } from "./TabsPanel";
+import TabsPanel from "./TabsPanel";
 
 /**
- * SINGLE ESSAY AREA:
- * For that, we make the big area a <textarea> or a contenteditable <div>.
- * 
- * For clarity, we'll use a single <textarea> so the user can type.
+ * This component has:
+ *  - A PDF upload button that populates the same text area
+ *  - Renders <TabsPanel> on the right, passing the essay text
  */
 
-// PDF worker
+// Required so pdfjs can load its worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export default function EssayForm() {
-  // The “source of truth” for user’s essay text
-  const [rawEssay, setRawEssay] = useState("");
-  // The same text but with highlight <mark> tags
-  const [displayedEssay, setDisplayedEssay] = useState("");
+  const [essay, setEssay] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // ------------------------------------------------------------------
-  // PDF Upload => sets the essay text
-  // ------------------------------------------------------------------
+  // If you still have leftover logic for rewriting, feel free to keep or remove it
+  // const [wordCount, setWordCount] = useState("200");
+  // const [essayType, setEssayType] = useState("Academic");
+  // ... etc.
+
+  // ---------------------------
+  // PDF Upload -> sets `essay`
+  // ---------------------------
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -49,89 +50,39 @@ export default function EssayForm() {
             textContent.items.map((item: any) => item.str).join(" ") + "\n\n";
         }
 
-        setRawEssay(extractedText.trim());
-        setDisplayedEssay(extractedText.trim());
+        // Put PDF text into the single essay text area
+        setEssay(extractedText.trim());
         setIsLoading(false);
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
       setIsLoading(false);
-      console.error("PDF upload error:", error);
       alert("Error reading PDF: " + (error as Error).message);
     }
   };
 
-  // ------------------------------------------------------------------
-  // highlightSnippets()
-  // Called by the side panel to wrap snippet text in <mark> tags
-  // ------------------------------------------------------------------
-  const highlightSnippets = (
-    suggestions: FeedbackSuggestion[],
-    hoveringId?: string
-  ) => {
-    // Start fresh from the unmarked text each time
-    let newText = rawEssay || "";
-
-    // Filter out resolved suggestions & sort them by snippet length (desc)
-    const active = suggestions.filter((sug) => !sug.resolved);
-    active.sort((a, b) => b.snippet.length - a.snippet.length);
-
-    // Replace each snippet with <mark>
-    for (const sug of active) {
-      // Example: only replace first occurrence (case-insensitive).
-      // For a more advanced approach, do a custom textual search.
-      const snippetRegex = new RegExp(sug.snippet, "i");
-
-      const highlightColor =
-        hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
-      newText = newText.replace(
-        snippetRegex,
-        `<mark class="${highlightColor}">${sug.snippet}</mark>`
-      );
-    }
-    setDisplayedEssay(newText);
-  };
-
-  // ------------------------------------------------------------------
-  // RENDER
-  // ------------------------------------------------------------------
   return (
     <div className="flex flex-col w-full min-h-screen pt-6 mt-14 relative bg-white text-black">
       <LoadingModal isLoading={isLoading} />
 
       {/* Two-column layout */}
       <div className="flex flex-1 h-full overflow-hidden">
-        {/* LEFT: Main essay area */}
+        {/* LEFT: Big essay area */}
         <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col">
-          <h2 className="text-xl font-bold mb-2">Your Essay</h2>
+          <h2 className="text-xl font-bold text-gray-700 mb-3">Your Essay</h2>
 
-          {/* We want a single text area that user can type into 
-              BUT also want to show highlights. 
-              We'll do the below approach: 
-              - A "ghost" text area to collect user input
-              - A "display area" that shows marked text.
-          */}
-
-          {/* This is the displayed text with <mark> highlights */}
-          <div className="flex-1 border rounded p-3 bg-gray-50 overflow-auto text-base leading-relaxed mb-3 text-black">
-            <div dangerouslySetInnerHTML={{ __html: displayedEssay }} />
+          {/* A single large text area for the essay */}
+          <div className="flex-1 border rounded p-3 bg-gray-50 overflow-auto">
+            <textarea
+              className="w-full h-full bg-transparent focus:outline-none text-base text-gray-700"
+              placeholder="Paste or type your essay here..."
+              value={essay}
+              onChange={(e) => setEssay(e.target.value)}
+            />
           </div>
 
-          {/* This is the actual text area for user input 
-              When user types here, we update both rawEssay & displayedEssay 
-          */}
-          <textarea
-            className="border rounded p-2 w-full h-16 text-black"
-            placeholder="Type or paste your essay here..."
-            value={rawEssay}
-            onChange={(e) => {
-              setRawEssay(e.target.value);
-              setDisplayedEssay(e.target.value); // no highlights if user typed new text
-            }}
-          />
-
-          {/* PDF Upload Button */}
-          <div className="mt-2">
+          {/* PDF Upload button below */}
+          <div className="mt-4">
             <label className="inline-block bg-blue-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-blue-500">
               Upload PDF
               <input
@@ -144,13 +95,9 @@ export default function EssayForm() {
           </div>
         </div>
 
-        {/* RIGHT: Tabs Panel (Feedback / Chat) */}
-        <div className="w-1/3 p-4">
-          <TabsPanel
-            rawEssay={rawEssay}
-            highlightSnippets={highlightSnippets}
-            setIsLoading={setIsLoading}
-          />
+        {/* RIGHT: Tabs (Feedback / Chat) */}
+        <div className="w-1/3 bg-white p-4 flex flex-col">
+          <TabsPanel essay={essay} />
         </div>
       </div>
     </div>
