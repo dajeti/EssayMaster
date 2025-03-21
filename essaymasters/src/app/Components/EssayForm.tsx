@@ -1,31 +1,16 @@
 "use client";
-
 import { useState } from "react";
 import LoadingModal from "./LoadingModal";
 import * as pdfjsLib from "pdfjs-dist";
-import TabsPanel from "./TabsPanel";
+import TabsPanel from "./TabsPanel"; // 
 
-/**
- * This component has:
- *  - A PDF upload button that populates the same text area
- *  - Renders <TabsPanel> on the right, passing the essay text
- */
-
-// Required so pdfjs can load its worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export default function EssayForm() {
   const [essay, setEssay] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // If you still have leftover logic for rewriting, feel free to keep or remove it
-  // const [wordCount, setWordCount] = useState("200");
-  // const [essayType, setEssayType] = useState("Academic");
-  // ... etc.
-
-  // ---------------------------
-  // PDF Upload -> sets `essay`
-  // ---------------------------
+  // PDF Upload -> sets essay text
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -50,7 +35,6 @@ export default function EssayForm() {
             textContent.items.map((item: any) => item.str).join(" ") + "\n\n";
         }
 
-        // Put PDF text into the single essay text area
         setEssay(extractedText.trim());
         setIsLoading(false);
       };
@@ -71,8 +55,8 @@ export default function EssayForm() {
         <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col">
           <h2 className="text-xl font-bold text-gray-700 mb-3">Your Essay</h2>
 
-          {/* A single large text area for the essay */}
           <div className="flex-1 border rounded p-3 bg-gray-50 overflow-auto">
+            {/* Single text area for user’s essay */}
             <textarea
               className="w-full h-full bg-transparent focus:outline-none text-base text-gray-700"
               placeholder="Paste or type your essay here..."
@@ -81,7 +65,6 @@ export default function EssayForm() {
             />
           </div>
 
-          {/* PDF Upload button below */}
           <div className="mt-4">
             <label className="inline-block bg-blue-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-blue-500">
               Upload PDF
