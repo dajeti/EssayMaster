@@ -14,7 +14,7 @@ export default function Home() {
         <Header />
         <main className="flex-1 flex justify-center p-6">
           <EssayForm />
-          <TabsPanel/>
+          {/* <TabsPanel/> */}
         </main>
       </div>
     </ThemeProvider>

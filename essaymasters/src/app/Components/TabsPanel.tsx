@@ -3,60 +3,66 @@
 import React, { useState, ChangeEvent } from "react";
 
 /**
- * This component always shows a two-tab panel.
- *  - The first tab handles uploading a markscheme and generating feedback.
- *  - The second tab acts as a chat interface with user input validation.
+ * This component is a side panel with two tabs:
+ *   1) FEEDBACK tab: 
+ *      - Shows a "score" at the top 
+ *      - Has an "Upload Markscheme" button (optional)
+ *      - Has a "Generate Feedback" button
+ *      - Comments out the suggestions display so you can re-enable later
+ *
+ *   2) CHAT tab: 
+ *      - Basic chat with an input
+ *      - Simple block on "write me a full essay" type requests
+ *
+ * We no longer have a separate essay textarea here, 
+ * because the main essay is in `EssayForm` on the left side.
+ * We accept an `essay` prop if needed for generating feedback.
  */
-export default function TabsPanel() {
+
+interface TabsPanelProps {
+  essay: string; // The user's essay from the main page
+}
+
+export default function TabsPanel({ essay }: TabsPanelProps) {
   // Which tab is active?
   const [activeTab, setActiveTab] = useState<"FEEDBACK" | "CHAT">("FEEDBACK");
 
-  // State for the user’s essay text
-  const [essay, setEssay] = useState<string>("");
-
-  // State for the user’s markscheme file/content
+  // Markscheme text (if the user uploads it)
   const [markscheme, setMarkscheme] = useState<string>("");
 
-  // State for “score,” which you can get from your AI or user input
+  // Score from AI or logic
   const [score, setScore] = useState<string>("N/A");
 
-  // Feedback messages (for highlighting, you might keep track of positions, etc.)
-  const [feedbackSuggestions, setFeedbackSuggestions] = useState<
-    Array<{ highlight: string; suggestion: string }>
-  >([]);
+  // For highlighting suggestions from AI (commented out for now)
+  // const [feedbackSuggestions, setFeedbackSuggestions] = useState<
+  //   Array<{ highlight: string; suggestion: string }>
+  // >([]);
 
   // Loading indicator
   const [isLoading, setIsLoading] = useState(false);
 
-  // Chat conversation
+  // Chat
   const [chatMessages, setChatMessages] = useState<
     { sender: "user" | "ai"; text: string }[]
   >([]);
-
-  // Single user input for chat
   const [chatInput, setChatInput] = useState<string>("");
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // TAB SWITCH LOGIC
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────
+  // Tab Switch
+  // ─────────────────────────────────────────────────────────
   const switchTab = (tabName: "FEEDBACK" | "CHAT") => {
     setActiveTab(tabName);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // FEEDBACK TAB METHODS
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Handles the user uploading a Markscheme (could be text, PDF, CSV, etc.).
-   * For simplicity, we read it as plain text. Adjust as needed.
-   */
+  // ─────────────────────────────────────────────────────────
+  // FEEDBACK LOGIC
+  // ─────────────────────────────────────────────────────────
   const handleMarkschemeUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      // For simplicity, let’s read it as text. If it’s a PDF, you’d parse the PDF etc.
+      // Just read as text (if PDF, you'd parse separately)
       const text = await file.text();
       setMarkscheme(text);
       alert("Markscheme uploaded successfully!");
@@ -65,44 +71,31 @@ export default function TabsPanel() {
     }
   };
 
-  /**
-   * Calls your AI endpoint to generate feedback for the essay, using the optional markscheme.
-   */
   const handleGenerateFeedback = async () => {
+    // If you want to require an essay:
     if (!essay.trim()) {
-      alert("Please provide or paste your essay text first!");
+      alert("No essay text found. Please paste or upload in the main area first.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Example fetch. Adjust to your actual /api route and body structure.
+      // Example: call your API
       const response = await fetch("/api/generateFeedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          essay,
-          markscheme,
-        }),
+        body: JSON.stringify({ essay, markscheme }),
       });
 
-      if (!response.ok) {
-        throw new Error("Error from API");
-      }
+      if (!response.ok) throw new Error("Error from API");
 
       const data = await response.json();
-
-      // Example structure: data might look like
-      // {
-      //   score: "15/20",
-      //   suggestions: [
-      //     { highlight: "your introduction", suggestion: "Try a stronger thesis statement" },
-      //     { highlight: "conclusion", suggestion: "Restate main argument succinctly" }
-      //   ]
-      // }
+      // Suppose the API returns: { score: "15/20", suggestions: [...] }
       setScore(data.score || "N/A");
-      setFeedbackSuggestions(data.suggestions || []);
+
+      // If you want to show suggestions (commented out):
+      // setFeedbackSuggestions(data.suggestions || []);
     } catch (err: any) {
       console.error(err);
       alert("Error generating feedback.");
@@ -111,31 +104,23 @@ export default function TabsPanel() {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // CHAT TAB METHODS
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Submits the chat input to your AI endpoint, with a simple validation
-   * to block requests that obviously ask for a complete essay.
-   */
+  // ─────────────────────────────────────────────────────────
+  // CHAT LOGIC
+  // ─────────────────────────────────────────────────────────
   const handleChatSubmit = async () => {
+    // Simple validation to block "write me a full essay"
     const prohibitedPhrases = ["write an essay", "entire essay", "full essay"];
-
-    // Simple validation:
     const lowerInput = chatInput.toLowerCase();
     if (prohibitedPhrases.some((phrase) => lowerInput.includes(phrase))) {
       alert("Requests for a full essay are not allowed.");
       return;
     }
 
-    // Add user message to the conversation
+    // Add user message
     setChatMessages([...chatMessages, { sender: "user", text: chatInput }]);
-    setChatInput("");
 
     setIsLoading(true);
     try {
-      // Example fetch call:
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,37 +132,40 @@ export default function TabsPanel() {
       }
 
       const data = await response.json();
-
-      // Suppose data.response is the AI's message
       const aiReply = data.response || "No response";
 
+      // Add AI message
       setChatMessages((msgs) => [...msgs, { sender: "ai", text: aiReply }]);
     } catch (err) {
       alert("Error in chat request.");
     } finally {
       setIsLoading(false);
+      setChatInput("");
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // RENDERING
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col w-full h-full max-w-5xl mx-auto mt-24">
-      {/* Tab buttons */}
-      <div className="flex border-b border-gray-300 mb-4">
+    <div className="flex flex-col w-full h-full">
+      {/* Simple tab buttons */}
+      <div className="flex border-b border-gray-300 mb-2">
         <button
-          className={`px-4 py-2 ${
-            activeTab === "FEEDBACK" ? "bg-white font-bold" : "bg-gray-100"
+          className={`flex-1 py-2 font-semibold ${
+            activeTab === "FEEDBACK"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "hover:bg-gray-100 text-gray-600"
           }`}
           onClick={() => switchTab("FEEDBACK")}
         >
           Feedback
         </button>
         <button
-          className={`px-4 py-2 ${
-            activeTab === "CHAT" ? "bg-white font-bold" : "bg-gray-100"
+          className={`flex-1 py-2 font-semibold ${
+            activeTab === "CHAT"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "hover:bg-gray-100 text-gray-600"
           }`}
           onClick={() => switchTab("CHAT")}
         >
@@ -186,59 +174,45 @@ export default function TabsPanel() {
       </div>
 
       {isLoading && (
-        <div className="text-center my-2 text-blue-600">Processing...</div>
+        <div className="text-center text-blue-600 mb-2">Processing...</div>
       )}
 
       {/* FEEDBACK TAB */}
       {activeTab === "FEEDBACK" && (
-        <div className="p-4 border rounded-md bg-white">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold">Feedback & Markscheme</h2>
-            <p className="text-gray-600 mt-2">
-              Score: <span className="font-semibold">{score}</span>
-            </p>
-          </div>
+        <div className="flex-1 overflow-auto p-3 bg-white border rounded">
+          <h2 className="text-lg font-bold mb-2">Generate Feedback</h2>
+          <p className="mb-4 text-gray-700">
+            Score: <span className="font-semibold">{score}</span>
+          </p>
 
-          {/* Markscheme Upload */}
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-1">
-              Upload Markscheme (Optional):
-            </label>
-            <input
-              type="file"
-              className="border p-2 rounded"
-              onChange={handleMarkschemeUpload}
-            />
-          </div>
-
-          {/* Essay Textarea */}
+          {/* Markscheme upload (optional) */}
           <label className="block text-gray-700 font-semibold mb-1">
-            Paste Essay Here:
+            Upload Markscheme (Optional):
           </label>
-          <textarea
-            className="w-full h-28 border rounded p-2"
-            placeholder="Paste or type your essay here..."
-            value={essay}
-            onChange={(e) => setEssay(e.target.value)}
-          ></textarea>
+          <input
+            type="file"
+            className="border p-2 rounded mb-4"
+            onChange={handleMarkschemeUpload}
+          />
 
-          {/* Generate Feedback Button */}
           <button
             onClick={handleGenerateFeedback}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
           >
             Generate Feedback
           </button>
 
-          {/* Show suggestions highlighting corresponding text  */}
+          {/*
+            --------------------------------------------------
+            COMMENTED OUT: suggestions or highlight display
+            --------------------------------------------------
+          */}
+          {/*
           {feedbackSuggestions.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-4">
               <h3 className="font-bold mb-2">Suggestions:</h3>
-              {feedbackSuggestions.map((item, i) => (
-                <div
-                  key={i}
-                  className="mb-4 p-3 border-l-4 border-blue-300 bg-gray-50"
-                >
+              {feedbackSuggestions.map((item, idx) => (
+                <div key={idx} className="mb-2 border-l-4 border-blue-300 pl-2">
                   <strong>Issue:</strong> <em>{item.highlight}</em>
                   <br />
                   <strong>Suggestion:</strong> {item.suggestion}
@@ -246,17 +220,19 @@ export default function TabsPanel() {
               ))}
             </div>
           )}
+          */}
         </div>
       )}
 
       {/* CHAT TAB */}
       {activeTab === "CHAT" && (
-        <div className="p-4 border rounded-md bg-white flex flex-col h-[50vh]">
-          <div className="flex-1 overflow-y-auto border p-2 mb-2 rounded">
+        <div className="flex flex-col flex-1 overflow-auto p-3 bg-white border rounded">
+          <h2 className="text-lg font-bold mb-2">Chat</h2>
+
+          {/* Chat messages area */}
+          <div className="flex-1 border rounded p-2 overflow-auto bg-gray-50 mb-2">
             {chatMessages.length === 0 && (
-              <div className="text-gray-400 italic">
-                Ask your questions here...
-              </div>
+              <div className="text-gray-400 italic">Ask a question...</div>
             )}
             {chatMessages.map((msg, idx) => (
               <div
@@ -278,11 +254,12 @@ export default function TabsPanel() {
             ))}
           </div>
 
+          {/* Chat input row */}
           <div className="flex items-center">
             <input
               type="text"
               className="flex-1 border rounded p-2 mr-2"
-              placeholder="Ask me anything (but not to write a full essay!)"
+              placeholder="Ask me anything (but not for a full essay!)"
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
             />
