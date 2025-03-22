@@ -7,11 +7,11 @@ export async function POST(req: Request) {
   try {
     // Parse the JSON body from the request
     const body = await req.json();
-    const { email, password } = body;
+    const { firstName, lastName, email, password } = body;
 
-    if (!email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: "First name, last name, email, and password are required." },
         { status: 400 }
       );
     }
@@ -28,7 +28,12 @@ export async function POST(req: Request) {
     // Hash the password and create the new user
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
-      data: { email, password: hashedPassword },
+      data: { 
+        firstName,
+        lastName,
+        email, 
+        password: hashedPassword 
+      },
     });
 
     return NextResponse.json(
