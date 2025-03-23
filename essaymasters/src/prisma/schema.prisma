@@ -14,8 +14,6 @@ model User {
   firstName String
   lastName  String
   email     String     @unique
-  firstName String
-  sureName  String
   password  String
   revisions Revision[]
 }
