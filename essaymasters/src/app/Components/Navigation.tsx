@@ -13,7 +13,7 @@ const NavigationBar = () => {
 
   const HomePage = () => {
   }
- 
+
 
   return (
     <ThemeProvider attribute="class">
@@ -40,11 +40,10 @@ const NavigationBar = () => {
           >
             <Link className="text-white" href="/faq">FAQ</Link>
           </span>
-
-          {/* Use the Profile component */}
-          <Profile />
-          {/* <UserCircleIcon className="h-7 w-7 hover:cursor-pointer text-white hover:text-blue-950 hover:shadow-lg left-32" /> */}
-
+          <span>
+            {/* Use the Profile component */}
+            <Profile />
+          </span>
           <div className="flex gap-10 pt-7 md:pt-9"></div>
 
         </div>
