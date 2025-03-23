@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -47,7 +48,7 @@ export default function RegisterPage() {
           <input
             type="text"
             placeholder="First Name"
-            className="w-full p-2 border rounded-lg"
+            className="w-full p-2 border rounded-lg text-black"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
@@ -55,7 +56,7 @@ export default function RegisterPage() {
           <input
             type="text"
             placeholder="Last Name"
-            className="w-full p-2 border rounded-lg"
+            className="w-full p-2 border rounded-lg text-black"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
@@ -63,7 +64,7 @@ export default function RegisterPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-2 border rounded-lg"
+            className="w-full p-2 border rounded-lg text-black"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -71,7 +72,7 @@ export default function RegisterPage() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-2 border rounded-lg"
+            className="w-full p-2 border rounded-lg text-black"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
