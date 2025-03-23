@@ -1,38 +1,73 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { data: session, status, update } = useSession();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  
+  //   const response = await fetch("/api/auth/login", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ email, password }),
+  //   });
+  
+  //   const text = await response.text(); // Get the raw response
+  
+  //   console.log("Raw response:", text); // Log the response to debug
+  
+  //   try {
+  //     const result = JSON.parse(text); // Try parsing as JSON
+  //     if (response.ok) {
+  //       alert("Login successful!");
+  //       router.push("/dashboard"); // Redirect on success
+  //     } else {
+  //       alert("Login failed: " + (result.error || "Unknown error"));
+  //     }
+  //   } catch (error) {
+  //     console.error("JSON parse error:", error);
+  //     alert("Invalid server response.");
+  //   }
+  // };
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    
+    const result = await signIn("credentials", {
+      email: email,
+      password: password,
+      redirect: true,
+      callbackUrl: "/dashboard" // Where to redirect after successful login
     });
-  
-    const text = await response.text(); // Get the raw response
-  
-    console.log("Raw response:", text); // Log the response to debug
-  
-    try {
-      const result = JSON.parse(text); // Try parsing as JSON
-      if (response.ok) {
-        alert("Login successful!");
-        router.push("/dashboard"); // Redirect on success
-      } else {
-        alert("Login failed: " + (result.error || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("JSON parse error:", error);
-      alert("Invalid server response.");
+    
+    // Handle errors if needed (when redirect: false)
+    if (!result?.ok) {
+      // Show error message
     }
   };
+  // const handleSubmit = async () => {
+  //   await signIn("credentials", {
+  //     redirect: false, // Prevent auto-redirect
+  //   });
+
+  //   await update(); // Force session refresh
+  //   router.push("/dashboard"); // Manually redirect
+  // };
   
 
   return (

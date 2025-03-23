@@ -15,8 +15,18 @@ model User {
   lastName  String
   email     String     @unique
   password  String
-  revisions Revision[]
 }
+
+
+model MarkScheme {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String  @unique
+  fileUrl  String
+  uploadedAt DateTime @default(now())
+}
+
+
+
 model Session {
   id         String   @id @map("_id") @default(auto()) @db.ObjectId
   essay      String
