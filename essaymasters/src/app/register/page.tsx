@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");

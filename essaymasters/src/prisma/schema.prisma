@@ -16,6 +16,8 @@ datasource db {
 model User {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   email     String     @unique
+  firstName String
+  sureName  String
   password  String
   revisions Revision[]
 }

@@ -1,4 +1,6 @@
 import { MongoClient } from 'mongodb';
+import bcrypt from "bcryptjs"; // to compare hashed passwords
+
 
 // Replace <username>, <password>, and <dbname> with your actual details
 const uri = 'mongodb+srv://Developer_test:e55aymaster@cluster0.mongodb.net/essaymasterdb?retryWrites=true&w=majority';
@@ -13,7 +15,6 @@ async function connectDB() {
   try {
     await client.connect();
     console.log('Connected to MongoDB Atlas');
-
     
     const database = client.db('essaymasterdb');
     const collection = database.collection('sample_mflix');

@@ -23,8 +23,10 @@ export default function LoginPage() {
     try {
       const result = JSON.parse(text); // Try parsing as JSON
       if (response.ok) {
+        // Store the user's email (or token) in localStorage or cookies
+        localStorage.setItem("userEmail", result.email); // Assuming response contains the email
         alert("Login successful!");
-        router.push("/dashboard"); // Redirect on success
+        router.push("/"); // Redirect on success
       } else {
         alert("Login failed: " + (result.error || "Unknown error"));
       }
