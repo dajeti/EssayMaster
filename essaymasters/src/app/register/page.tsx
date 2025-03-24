@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -81,6 +81,14 @@ export default function RegisterPage() {
             Register
           </button>
         </form>
+        <h2 className="mt-4 text-center">
+          <a
+            href="/login"
+            className="text-black hover:underline hover:text-blue-500"
+          >
+            Already have an account? Click here to login
+          </a>
+        </h2>
       </div>
     </div>
   );
