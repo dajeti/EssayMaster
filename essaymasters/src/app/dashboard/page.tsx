@@ -4,13 +4,18 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MagnifyingGlassIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import { 
+  MagnifyingGlassIcon, 
+  PlusCircleIcon, 
+  TrashIcon 
+} from "@heroicons/react/24/outline";
 
+// Enhanced interface to match both implementations
 interface Session {
   id: string;
   title: string;
   updatedAt: string;
-  feedback: number;
+  feedback: number | any[];
 }
 
 export default function Dashboard() {
@@ -20,23 +25,24 @@ export default function Dashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Consolidated authentication and session fetching logic
   useEffect(() => {
     if (status === "loading") return;
+    
     if (!session) {
       router.push("/login");
       return;
     }
 
-    // Fetch sessions from API
     async function fetchSessions() {
       try {
         setLoading(true);
         const res = await fetch("/api/sessions");
         const data = await res.json();
         
-        if (data.sessions) {
-          setSessions(data.sessions);
-        }
+        // Handle different API response structures
+        const sessionsData = data.sessions || data;
+        setSessions(sessionsData);
       } catch (error) {
         console.error("Error fetching sessions:", error);
       } finally {
@@ -47,7 +53,13 @@ export default function Dashboard() {
     fetchSessions();
   }, [status, session, router]);
 
-  // Create a new session
+  // Function to open a session (saves session ID to localStorage)
+  const openSession = (sessionId: string) => {
+    localStorage.setItem("currentSessionId", sessionId);
+    router.push("/"); // Redirect to main editor
+  };
+
+  // Create new session function
   const createNewSession = async () => {
     try {
       const res = await fetch("/api/sessions", {
@@ -55,17 +67,37 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ essay: "" }),
       });
-      
+  
       const data = await res.json();
-      
+  
       if (data.sessionId) {
-        router.push(`/${data.sessionId}`);
+        localStorage.setItem("currentSessionId", data.sessionId);
+        router.push("/");
       }
     } catch (error) {
       console.error("Error creating new session:", error);
     }
   };
 
+  // Delete session function
+  const deleteSession = async (sessionId: string) => {
+    const confirmDelete = confirm("Are you sure you want to delete this session?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
+
+      if (res.ok) {
+        setSessions((prev) => prev.filter((session) => session.id !== sessionId));
+      } else {
+        console.error("Failed to delete session");
+      }
+    } catch (error) {
+      console.error("Error deleting session:", error);
+    }
+  };
+
+  // Loading state
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6 flex items-center justify-center">
@@ -73,6 +105,13 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  // Filtered and sorted sessions
+  const filteredSessions = sessions
+    .filter((session) =>
+      session.title.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
@@ -86,14 +125,14 @@ export default function Dashboard() {
             placeholder="Search sessions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border p-3 rounded w-full pl-10"
+            className="border p-3 rounded w-full pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
 
         <button 
           onClick={createNewSession}
-          className="bg-blue-600 text-white px-4 py-2 rounded flex items-center"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center transition"
         >
           <PlusCircleIcon className="w-5 h-5 mr-2" />
           New Session
@@ -102,24 +141,43 @@ export default function Dashboard() {
 
       {/* Sessions List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 col-span-3 text-center py-8">
             No sessions found. Create a new session to get started.
           </p>
         ) : (
-          sessions
-            .filter((session) =>
-              session.title.toLowerCase().includes(search.toLowerCase())
-            )
-            .map((session) => (
-              <Link key={session.id} href={`/${session.id}`}>
-                <div className="p-4 bg-white rounded-lg shadow hover:shadow-lg dark:bg-gray-800 transition">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{session.title}</h2>
-                  <p className="text-sm text-gray-500">Last updated: {session.updatedAt}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{session.feedback} feedback comments</p>
+          filteredSessions.map((session) => (
+            <div 
+              key={session.id} 
+              className="p-4 bg-white rounded-lg shadow hover:shadow-lg dark:bg-gray-800 transition"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <div 
+                  onClick={() => openSession(session.id)} 
+                  className="w-full cursor-pointer"
+                >
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                    {session.title || 'Untitled Session'}
+                  </h2>
                 </div>
-              </Link>
-            ))
+                <button
+                  onClick={() => deleteSession(session.id)}
+                  className="ml-2 text-red-600 hover:text-red-800 transition"
+                  aria-label="Delete Session"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500">
+                Last updated: {new Date(session.updatedAt).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {Array.isArray(session.feedback) 
+                  ? session.feedback.length 
+                  : session.feedback || 0} feedback comments
+              </p>
+            </div>
+          ))
         )}
       </div>
     </div>

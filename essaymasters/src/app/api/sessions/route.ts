@@ -65,3 +65,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { sessionId: string } }) {
+  try {
+    await prisma.session.delete({
+      where: { id: params.sessionId },
+    });
+
+    return NextResponse.json({ message: "Session deleted" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting session:", error);
+    return NextResponse.json({ error: "Failed to delete session" }, { status: 500 });
+  }
+}
