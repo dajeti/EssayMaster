@@ -1,22 +1,83 @@
+// /app/api/marks/[sessionId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 
-export async function GET(req: NextRequest, { params }: { params: { sessionId: string } }) {
-  const markScheme = await prisma.markScheme.findUnique({
-    where: { sessionId: params.sessionId },
-  });
+const prisma = new PrismaClient();
 
-  return NextResponse.json(markScheme || {});
+// GET: Retrieve mark scheme for a session
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const { sessionId } = params;
+    
+    const markScheme = await prisma.markScheme.findUnique({
+      where: { sessionId },
+    });
+
+    if (!markScheme) {
+      return NextResponse.json({ error: "Mark scheme not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ markScheme });
+  } catch (error) {
+    console.error("Error retrieving mark scheme:", error);
+    return NextResponse.json({ error: "Failed to retrieve mark scheme" }, { status: 500 });
+  }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { sessionId: string } }) {
-  const { fileUrl } = await req.json();
+// POST: Add or update mark scheme for a session
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const { sessionId } = params;
+    const { fileUrl } = await request.json();
 
-  await prisma.markScheme.upsert({
-    where: { sessionId: params.sessionId },
-    update: { fileUrl },
-    create: { sessionId: params.sessionId, fileUrl },
-  });
+    // Check if mark scheme exists
+    const existingMarkScheme = await prisma.markScheme.findUnique({
+      where: { sessionId },
+    });
 
-  return NextResponse.json({ message: "Mark scheme uploaded" });
+    if (existingMarkScheme) {
+      // Update existing mark scheme
+      const updatedMarkScheme = await prisma.markScheme.update({
+        where: { sessionId },
+        data: { 
+          fileUrl,
+          uploadedAt: new Date()
+        },
+      });
+      
+      // Also update the session
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { markScheme: fileUrl },
+      });
+
+      return NextResponse.json({ success: true, markScheme: updatedMarkScheme });
+    } else {
+      // Create new mark scheme
+      const newMarkScheme = await prisma.markScheme.create({
+        data: {
+          sessionId,
+          fileUrl,
+          uploadedAt: new Date(),
+        },
+      });
+      
+      // Also update the session
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { markScheme: fileUrl },
+      });
+
+      return NextResponse.json({ success: true, markScheme: newMarkScheme });
+    }
+  } catch (error) {
+    console.error("Error saving mark scheme:", error);
+    return NextResponse.json({ error: "Failed to save mark scheme" }, { status: 500 });
+  }
 }

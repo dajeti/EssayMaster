@@ -19,17 +19,17 @@ export default function LoginPage() {
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
-
+  
   //   const response = await fetch("/api/auth/login", {
   //     method: "POST",
   //     headers: { "Content-Type": "application/json" },
   //     body: JSON.stringify({ email, password }),
   //   });
-
+  
   //   const text = await response.text(); // Get the raw response
-
+  
   //   console.log("Raw response:", text); // Log the response to debug
-
+  
   //   try {
   //     const result = JSON.parse(text); // Try parsing as JSON
   //     if (response.ok) {
@@ -68,7 +68,7 @@ export default function LoginPage() {
   //   await update(); // Force session refresh
   //   router.push("/dashboard"); // Manually redirect
   // };
-
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
