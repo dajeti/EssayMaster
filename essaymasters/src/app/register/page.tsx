@@ -77,7 +77,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
           {/* Register button */}
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded-lg">
+          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded-lg hover:underline">
             Register
           </button>
         </form>

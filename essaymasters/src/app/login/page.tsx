@@ -17,25 +17,58 @@ export default function LoginPage() {
     }
   }, [session, router]);
 
-
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  
+  //   const response = await fetch("/api/auth/login", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ email, password }),
+  //   });
+  
+  //   const text = await response.text(); // Get the raw response
+  
+  //   console.log("Raw response:", text); // Log the response to debug
+  
+  //   try {
+  //     const result = JSON.parse(text); // Try parsing as JSON
+  //     if (response.ok) {
+  //       alert("Login successful!");
+  //       router.push("/dashboard"); // Redirect on success
+  //     } else {
+  //       alert("Login failed: " + (result.error || "Unknown error"));
+  //     }
+  //   } catch (error) {
+  //     console.error("JSON parse error:", error);
+  //     alert("Invalid server response.");
+  //   }
+  // };
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const result = await signIn("credentials", {
       email: email,
       password: password,
       redirect: true,
       callbackUrl: "/dashboard" // Where to redirect after successful login
     });
-    
+
     // Handle errors if needed (when redirect: false)
     if (!result?.ok) {
       // Show error message
     }
   };
+  // const handleSubmit = async () => {
+  //   await signIn("credentials", {
+  //     redirect: false, // Prevent auto-redirect
+  //   });
 
+  //   await update(); // Force session refresh
+  //   router.push("/dashboard"); // Manually redirect
+  // };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -45,7 +78,7 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-2 border rounded-lg"
+            className="w-full p-2 border rounded-lg text-black"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -56,11 +89,20 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded-lg">
+          <button type="submit" className="w-full bg-blue-500 hover:underline text-white p-2 rounded-lg text-black">
             Login
           </button>
         </form>
-      </div>
-    </div>
+        <h2 className="mt-4 text-center">
+          <a
+            href="/register"
+            className="text-black hover:underline hover:text-blue-500"
+          >
+            New here? Click here to create an account
+          </a>
+        </h2>
+
+      </div >
+    </div >
   );
 }
