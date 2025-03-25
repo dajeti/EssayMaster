@@ -1,38 +1,42 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "mongodb"
   url      = "mongodb+srv://Developer_test:e55aymaster@essaymasterdb.yzhv4.mongodb.net/essaymasterdb?retryWrites=true&w=majority"
 }
-model User {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  firstName String
-  lastName  String
-  email     String     @unique
-  password  String
-}
 
+model Chats {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
 
 model MarkScheme {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  sessionId String  @unique
-  fileUrl  String
-  uploadedAt DateTime @default(now())
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  /// Field referred in an index, but found no data to define the type.
+  sessionId Json?  @unique
 }
 
-
+model Revision {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
 
 model Session {
-  id         String   @id @map("_id") @default(auto()) @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  chat       Json?
+  createdAt  DateTime @db.Date
   essay      String
-  chat       Json
   feedback   String
-  markScheme String?  // Stores PDF URL
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  markScheme Json?
+  updatedAt  DateTime @db.Date
+}
+
+model User {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  email     String @unique
+  firstName String
+  lastName  String
+  password  String
 }
