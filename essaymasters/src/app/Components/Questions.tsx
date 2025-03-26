@@ -30,7 +30,7 @@ const Questions = () => {
         id: 3,
         question: "Can I customise the feedback categories?",
         answer:
-          "Yes, you can create custom feedback categories based on your needs. In addition to the default categories like grammar and tone, you can request feedback on other specific areas of your essay",
+          "Yes, you can create custom feedback categories based on your needs. In addition to the default categories like grammar and tone, you can request feedback on other specific areas of your essay.",
       },
       {
         id: 4,

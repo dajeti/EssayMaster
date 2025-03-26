@@ -39,7 +39,7 @@ export default function Home() {
     }
   };
 
-  if (!sessionId) return <p className="color black center align text">Loading session...</p>;
+  if (!sessionId) return <p className="color black">Loading session...</p>;
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-darker-custom">

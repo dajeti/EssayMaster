@@ -4,6 +4,7 @@ import { UserCircleIcon } from "@heroicons/react/24/outline";
 import prisma from "@/lib/prisma";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import { getSession } from "next-auth/react"; // To get the session
 
 const Profile = () => {
     const { data: session, status } = useSession(); //session data using next-auth
@@ -22,7 +23,7 @@ const Profile = () => {
     const router = useRouter(); // Create router object to navigate
 
     useEffect(() => {
-        if (session?.user?.id) {
+        if (session?.user?.firstName) {
             console.log(session); // Log session to check the structure
             const fetchUserData = async () => {
                 try {
@@ -46,6 +47,38 @@ const Profile = () => {
         }
     }, [session]);
 
+    /* import prisma from "@/lib/prisma"; // Prisma client instance
+    import { getSession } from "next-auth/react"; // To get the session
+    
+    // pages/api/userData.js
+    export default async function handler(req, res) {
+        const session = await getSession({ req });
+    
+        if (!session || !session.user?.firstName) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+    
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: session.user.firstName }, // Use user.id here, not firstName
+            });
+    
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+    
+            res.status(200).json({
+                firstName: user.firstName,
+                lastName: user.lastName,
+            });
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+    } */
+    
+
+   /*  <pages/api/userData /> */
 
 
     // Toggle the dropdown open/close
@@ -75,9 +108,14 @@ const Profile = () => {
         }
     };
 
+    const redirectToDashboard = () => {
+        router.push("/dashboard");
+    };
+
     return (
         <div>
-            <button onClick={toggleDropdown}
+            <button
+                onClick={toggleDropdown}
                 className="flex items-center h-full px-4 py-2 hover:underline focus:outline-none"
             >
                 <UserCircleIcon className="h-8 w-8 text-white hover:cursor-pointer hover:text-blue-950 hover:shadow-lg" />
@@ -86,14 +124,28 @@ const Profile = () => {
             </button>
 
             {isDropdownOpen && (
-
-                <button
-                    onClick={Logout}
-                    className="mt-4 w-full px-4 py-2 text-center text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
-                >
-                    Logout
-                </button>
-
+                <div className="flex flex-col items-center p-3">
+                    <button
+                        onClick={redirectToDashboard} // This is the redirect button
+                        className="mt-4 w-full px-4 py-2 text-center text-white bg-green-500 hover:bg-green-700 rounded-lg"
+                    /* style={{
+                        backgroundImage: 'repeating-linear-gradient(45deg, green 0%, green 25%, white 25%, white 50%)',
+                        backgroundSize: '15px 15px',
+                    }} */
+                    >
+                        Go to Dashboard
+                    </button>
+                    <button
+                        onClick={Logout}
+                        className="mt-4 w-full px-4 py-2 text-center text-white black bg-blue-500 hover:bg-blue-700 rounded-lg"
+                    /* style={{
+                        backgroundImage: 'repeating-linear-gradient(45deg, blue 0%, blue 25%, white 25%, white 50%)',
+                        backgroundSize: '15px 15px',
+                    }} */
+                    >
+                        Logout
+                    </button>
+                </div>
             )}
         </div>
     );

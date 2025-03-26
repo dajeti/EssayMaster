@@ -30,19 +30,26 @@ const authOptions = {
       ,
     }),
   ],
+
   callbacks: {
     async session({ session, token }) {
       console.log("Session callback token:", token);
+
       if (token.sub) {
         session.user = {
-          id: token.sub,       // Set the ID in session.user
-          email: token.email,  // Set the email in session.user
+          id: token.sub, // Set the ID in session.user
+          email: token.email, // Set the email in session.user
           firstName: token.firstName, // Set the first name
           lastName: token.lastName, // Set the last name
         };
+
+        // Storing session ID in localStorage only for the client-side (in the browser)
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentSessionId", token.sub); // Set session ID in localStorage
+        }
       }
-        return session;
-      },
+      return session;
+    },
 
     async jwt({ token, user }) {
       console.log("JWT callback user:", user);
