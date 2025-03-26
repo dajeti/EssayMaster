@@ -18,6 +18,13 @@ const authOptions = {
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          select: {
+            id: true,
+            email: true,
+            firstName: true, // Ensure firstname is selected
+            lastName: true,  // Ensure lastname is selected
+            password: true
+          },
         });
 
         if (!user) throw new Error("No user found");
@@ -25,23 +32,31 @@ const authOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) throw new Error("Invalid password");
 
-        return { id: user.id, email: user.email };
+        return { id: user.id, email: user.email , firstname: user.firstName , lastname: user.lastName };
       },
     }),
   ],
   callbacks: {
     async session({ session, token }) {
-      // console.log("Session callback token:", token);
+      // Ensure the correct casing for token properties
       if (token.sub) {
-        session.user = { id: token.sub, email: token.email };
+        session.user = {
+          id: token.sub,
+          email: token.email,
+          firstname: token.firstname, // Ensure lowercase consistency
+          lastname: token.lastname,   // Ensure lowercase consistency
+        };
       }
+      // console.log(session);
       return session;
     },
     async jwt({ token, user }) {
-      // console.log("JWT callback user:", user);
+      // Ensure consistency between JWT and session token
       if (user) {
         token.sub = user.id;
         token.email = user.email;
+        token.firstname = user.firstname; // Ensure lowercase consistency
+        token.lastname = user.lastname;   // Ensure lowercase consistency
       }
       return token;
     },

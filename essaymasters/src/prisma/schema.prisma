@@ -1,34 +1,32 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "mongodb"
   url      = "mongodb+srv://Developer_test:e55aymaster@essaymasterdb.yzhv4.mongodb.net/essaymasterdb?retryWrites=true&w=majority"
 }
+
 model User {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   firstName String
   lastName  String
   email     String     @unique
   password  String
+  sessions  Session[]
 }
 
-
 model MarkScheme {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  sessionId String  @unique
-  fileUrl  String
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId  String   @unique
+  fileUrl    String
   uploadedAt DateTime @default(now())
 }
 
-
-
 model Session {
   id         String   @id @map("_id") @default(auto()) @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
   essay      String
   chat       Json
   feedback   String

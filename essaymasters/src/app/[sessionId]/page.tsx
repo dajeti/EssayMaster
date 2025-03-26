@@ -1,6 +1,7 @@
-// app/[sessionId]/page.tsx
-import EssayForm from "../Components/EssayForm";
-
-export default function SessionPage({ params }: { params: { sessionId: string } }) {
-  return <EssayForm sessionId={params.sessionId} />;
+// In your main page component
+export default function MainPage({ searchParams }: { searchParams: { sessionId?: string } }) {
+  const sessionId = searchParams.sessionId;
+  
+  // Use sessionId to load the specific session if provided
+  return <EssayForm sessionId={sessionId} />;
 }

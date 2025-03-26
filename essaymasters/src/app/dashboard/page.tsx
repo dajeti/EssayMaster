@@ -53,10 +53,9 @@ export default function Dashboard() {
     fetchSessions();
   }, [status, session, router]);
 
-  // Function to open a session (saves session ID to localStorage)
+  // Function to open a session (passes session ID to maintain routing consistency)
   const openSession = (sessionId: string) => {
-    localStorage.setItem("currentSessionId", sessionId);
-    router.push("/"); // Redirect to main editor
+    router.push("/", { query: { sessionId } });
   };
 
   // Create new session function
@@ -71,8 +70,7 @@ export default function Dashboard() {
       const data = await res.json();
   
       if (data.sessionId) {
-        localStorage.setItem("currentSessionId", data.sessionId);
-        router.push("/");
+        router.push("/", { query: { sessionId: data.sessionId } });
       }
     } catch (error) {
       console.error("Error creating new session:", error);
