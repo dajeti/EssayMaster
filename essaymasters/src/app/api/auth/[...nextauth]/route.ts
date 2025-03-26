@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 const authOptions = {
@@ -25,23 +25,32 @@ const authOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) throw new Error("Invalid password");
 
-        return { id: user.id, email: user.email };
-      },
+        return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName };
+      }
+      ,
     }),
   ],
   callbacks: {
     async session({ session, token }) {
-      // console.log("Session callback token:", token);
+      console.log("Session callback token:", token);
       if (token.sub) {
-        session.user = { id: token.sub, email: token.email };
+        session.user = {
+          id: token.sub,       // Set the ID in session.user
+          email: token.email,  // Set the email in session.user
+          firstName: token.firstName, // Set the first name
+          lastName: token.lastName, // Set the last name
+        };
       }
-      return session;
-    },
+        return session;
+      },
+
     async jwt({ token, user }) {
-      // console.log("JWT callback user:", user);
+      console.log("JWT callback user:", user);
       if (user) {
-        token.sub = user.id;
-        token.email = user.email;
+        token.sub = user.id; // Store the user's ID in the token
+        token.email = user.email; // Store the user's email
+        token.firstName = user.firstName; // Store first name
+        token.lastName = user.lastName; // Store last name
       }
       return token;
     },
