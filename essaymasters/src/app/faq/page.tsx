@@ -19,7 +19,7 @@ const FaqsPage = () => {
 
         <span className="block text-4xl font-bold text-center text-gray-800 dark:text-white">Questions?</span>
         
-        <p className="block text-lg text-center text-gray-800 pt-5 dark:text-white">That’s Great! We love answering questions,</p>
+        <p className="block text-lg text-center text-gray-800 pt-5 dark:text-white">That's Great! We love answering questions,</p>
         <p className="block text-lg text-center text-gray-800 dark:text-white">here are some frequently asked ones...</p>
 
         <div className="mt-5">

@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { useSession ,signOut} from "next-auth/react";
@@ -11,30 +10,43 @@ const Profile = () => {
     const [lastName, setLastName] = useState(""); // State for last name 
     const { data: session, status } = useSession();
 
-    // Fetch user first name and last name from localStorage (or context / API)
     useEffect(() => {
-        const storedFirstName = localStorage.getItem("usersFirstName");
-        const storedLastName = localStorage.getItem("usersLastName");
+        if (session?.user?.firstName) {
+            console.log(session); // Log session to check the structure
+            const fetchUserData = async () => {
+                try {
+                    // fetching user data using the user ID from the session
+                    const response = await fetch("/api/userData"); // Call the API route 
+                    const data = await response.json();
+                    if (response.ok) {
+                        setUserData({
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                        });
+                    } else {
+                        console.error("Error fetching user data:", data.message);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            };
 
-        if (storedFirstName && storedLastName) {
-            setFirstName(storedFirstName);
-            setLastName(storedLastName);
+            fetchUserData();
         }
-    }, []);
+    }, [session]);
+
 
 
     // Toggle the dropdown open/close
-    const toggleDropdown = () => {
-        setDropdownOpen(!isDropdownOpen);
-    };
-
+    const toggleDropdown = () => setIsDropdownOpen((prev) => !prev); // Toggle dropdown menu visibility
 
 
 
     console.log(session?.user);
     return (
         <div>
-            <button onClick={toggleDropdown}
+            <button
+                onClick={toggleDropdown}
                 className="flex items-center h-full px-4 py-2 hover:underline focus:outline-none"
             >
                 <UserCircleIcon className="h-8 w-8 text-white hover:cursor-pointer hover:text-blue-950 hover:shadow-lg" />
@@ -42,14 +54,24 @@ const Profile = () => {
             </button>
 
             {isDropdownOpen && (
-
+                <div className="flex flex-col items-center p-3">
+                    <button
+                        onClick={redirectToDashboard} // This is the redirect button
+                        className="mt-4 w-full px-4 py-2 text-center text-white bg-green-500 hover:bg-green-700 rounded-lg"
+                    /* style={{
+                        backgroundImage: 'repeating-linear-gradient(45deg, green 0%, green 25%, white 25%, white 50%)',
+                        backgroundSize: '15px 15px',
+                    }} */
+                    >
+                        Go to Dashboard
+                    </button>
                     <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                         className="mt-4 w-full px-4 py-2 text-center text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
                     >
                         Logout
                     </button>
-
+                </div>
             )}
         </div>
     );
@@ -57,7 +79,7 @@ const Profile = () => {
 
 export default Profile;
 
-{/* <div className="absolute-left-1/2 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 translate-x-7"> */}
-                    {/* **Flex Column Layout for Dropdown** */}
-                    {/* <div className="flex flex-col items-center p-3"> */}
-                    {/* **Log out Button underneath** */}
+{/* <div className="absolute-left-1/2 mt-1 w-48 bg-white shadow-lg rounded-lg border border-gray-200 translate-x-7"> */ }
+{/* **Flex Column Layout for Dropdown** */ }
+{/* <div className="flex flex-col items-center p-3"> */ }
+{/* **Log out Button underneath** */ }

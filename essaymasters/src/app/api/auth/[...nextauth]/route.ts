@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 const authOptions = {
@@ -36,6 +36,7 @@ const authOptions = {
       },
     }),
   ],
+
   callbacks: {
     async session({ session, token }) {
       // Ensure the correct casing for token properties
@@ -50,6 +51,7 @@ const authOptions = {
       // console.log(session);
       return session;
     },
+
     async jwt({ token, user }) {
       // Ensure consistency between JWT and session token
       if (user) {
