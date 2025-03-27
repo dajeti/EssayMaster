@@ -27,7 +27,7 @@ interface GPTResponse {
     clarity: number;
     structure: number;
     analysis: number;
-    markscheme?: number; 
+    markscheme?: number;
   };
   suggestions?: FeedbackSuggestion[];
 }
@@ -138,52 +138,50 @@ export default function FeedbackTab({ essay, sessionId }: FeedbackTabProps) {
     setIsFeedbackLoading(true);
 
     try {
-      // Build a GPT prompt with clearer guidance for suggestions
       let markschemeClause = "";
       if (markSchemeUrl) {
         markschemeClause = `
-Also provide a "markscheme" sub-score out of 10 reflecting how well the essay aligns with the uploaded markscheme PDF. 
-If the PDF is not visible to you, infer typical best practices from the context. 
+  Also include a "markscheme" sub-score (0-10) indicating how well the essay aligns with the uploaded markscheme PDF or typical best practices you'd infer from a standard academic rubric.
         `;
       }
 
+      // --- REFINED PROMPT --- //
       const feedbackPrompt = `
-You are an essay feedback assistant. The user wrote this essay:
-"""${essay}"""
-
-Please produce constructive feedback with a numeric "score" out of 100.
-
-Also return a "criteria" object with sub-scores (0-10) for:
-  - grammar (SPAG)
-  - clarity
-  - structure
-  - analysis
-${markschemeClause}
-
-Then provide an array of "suggestions," each with:
-  - "id" (unique string)
-  - "snippet" (literal text from the essay that needs improvement)
-  - "advice" (1-2 sentences explaining how to improve or a possible revision)
-
-Be specific and actionable: references to grammar fixes, clarity improvements, structural changes, or deeper analysis. 
-Return valid JSON only, e.g.:
-{
-  "score": 85,
-  "criteria": {
-    "grammar": 8,
-    "clarity": 7,
-    "structure": 9,
-    "analysis": 8,
-    "markscheme": 7
-  },
-  "suggestions": [
-    {
-      "id": "unique-123",
-      "snippet": "some snippet from essay",
-      "advice": "Here's how to fix..."
-    }
-  ]
-}
+  You are an essay feedback assistant. The user wrote this essay:
+  """${essay}"""
+  
+  Please analyze it thoroughly and return only valid JSON with the following structure:
+  
+  {
+    "score": (number, 0-100), 
+    "summary": (string, a short overview of the essay’s strengths/weaknesses),
+    "criteria": {
+      "grammar": (number, 0-10),     // Evaluate grammar/spelling/punctuation
+      "clarity": (number, 0-10),     // Evaluate clarity & concision
+      "structure": (number, 0-10),   // Evaluate organization & flow
+      "analysis": (number, 0-10),    // Depth of argument/analysis
+      "markscheme": (number, 0-10)   // If markscheme PDF is present, how well does it align?
+    },
+    "suggestions": [
+      {
+        "id": "unique-string",
+        "snippet": "exact text from the essay needing improvement",
+        "advice": "1-2 sentences of actionable feedback, possibly a revised version or next steps"
+      },
+      ...
+    ]
+  }
+  
+  Overall instructions:
+  - "score" is an overall rating (0-100), combining all factors.
+  - "summary" is a brief paragraph summarizing main strengths and areas to improve.
+  - "criteria" sub-scores must be integers between 0-10.
+  - If no markscheme PDF is available, you may skip or omit "markscheme" in "criteria", or set it to null. Indicate to user 'no markscheme attached'
+  - "suggestions" are specific improvements. For each snippet, offer concise, actionable advice.
+  
+  ${markschemeClause}
+  
+  IMPORTANT: Return valid JSON only. Do not include extra commentary outside the JSON.
       `;
 
       const response = await fetch("/api/query", {
@@ -203,7 +201,8 @@ Return valid JSON only, e.g.:
 
       const data = await response.json();
 
-      let parsed: GPTResponse;
+      // Attempt to parse GPT's response as JSON
+      let parsed;
       try {
         parsed = JSON.parse(data.response);
       } catch (e) {
@@ -213,12 +212,13 @@ Return valid JSON only, e.g.:
         return;
       }
 
-      // overall numeric score
+      // Now handle the fields from the refined JSON
       setScore(parsed.score ?? "N/A");
+      // We'll store "summary" somewhere if we want to display it
+      // e.g. setSummary(parsed.summary ?? "");
 
-      // sub-scores
       if (parsed.criteria) {
-        const c: CriteriaScores = {
+        const c = {
           grammar: parsed.criteria.grammar ?? 0,
           clarity: parsed.criteria.clarity ?? 0,
           structure: parsed.criteria.structure ?? 0,
@@ -230,7 +230,6 @@ Return valid JSON only, e.g.:
         setCriteria(null);
       }
 
-      // suggestions
       const sugs = parsed.suggestions || [];
       sugs.forEach((sug) => (sug.resolved = false));
       setSuggestions(sugs);
@@ -245,7 +244,10 @@ Return valid JSON only, e.g.:
   }
 
   // --------------- HIGHLIGHTING ---------------
-  function highlightSnippets(sugList: FeedbackSuggestion[], hoveringId?: string) {
+  function highlightSnippets(
+    sugList: FeedbackSuggestion[],
+    hoveringId?: string
+  ) {
     let newText = essay;
 
     const active = sugList.filter((sug) => !sug.resolved);
@@ -253,7 +255,8 @@ Return valid JSON only, e.g.:
 
     for (const sug of active) {
       const snippetRegex = new RegExp(sug.snippet, "i");
-      const colorClass = hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
+      const colorClass =
+        hoveringId === sug.id ? "bg-yellow-300" : "bg-yellow-100";
 
       newText = newText.replace(
         snippetRegex,
@@ -336,18 +339,20 @@ Return valid JSON only, e.g.:
       {/* Sub-score chart (if you have one) */}
       {criteria && (
         <div className="mt-2">
-          <p className="text-sm text-gray-600">
-            Sub-Scores (0–10):
-          </p>
+          <p className="text-sm text-gray-600">Sub-Scores (0–10):</p>
           {/* If you have a chart, you can do: 
               <FeedbackChart criteria={criteria} />
           */}
           <p className="text-sm text-gray-700">Grammar: {criteria.grammar}</p>
           <p className="text-sm text-gray-700">Clarity: {criteria.clarity}</p>
-          <p className="text-sm text-gray-700">Structure: {criteria.structure}</p>
+          <p className="text-sm text-gray-700">
+            Structure: {criteria.structure}
+          </p>
           <p className="text-sm text-gray-700">Analysis: {criteria.analysis}</p>
           {criteria.markscheme != null && (
-            <p className="text-sm text-gray-700">Markscheme: {criteria.markscheme}</p>
+            <p className="text-sm text-gray-700">
+              Markscheme: {criteria.markscheme}
+            </p>
           )}
         </div>
       )}
