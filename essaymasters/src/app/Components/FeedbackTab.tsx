@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import FeedbackChart from "./FeedbackChart"; // <-- Import the new chart component
+import FeedbackChart from "./FeedbackChart"; // Optional if you already have sub-score charts
+// If you're using the same LoadingModal from your code base, import it here:
+import LoadingModal from "./LoadingModal";
 
 interface FeedbackSuggestion {
   id: string;
@@ -15,10 +17,9 @@ interface CriteriaScores {
   clarity: number;
   structure: number;
   analysis: number;
-  markscheme?: number | null; 
+  markscheme?: number | null;
 }
 
-// For TS, define the shape of GPT's JSON
 interface GPTResponse {
   score: number | string;
   criteria?: {
@@ -26,7 +27,7 @@ interface GPTResponse {
     clarity: number;
     structure: number;
     analysis: number;
-    markscheme?: number; // optional 
+    markscheme?: number; 
   };
   suggestions?: FeedbackSuggestion[];
 }
@@ -137,13 +138,12 @@ export default function FeedbackTab({ essay, sessionId }: FeedbackTabProps) {
     setIsFeedbackLoading(true);
 
     try {
-      // Build a GPT prompt that references the markscheme if available
+      // Build a GPT prompt with clearer guidance for suggestions
       let markschemeClause = "";
       if (markSchemeUrl) {
         markschemeClause = `
-The user also has a markscheme (PDF) that sets expectations for the essay. 
-Please provide a "markscheme" sub-score out of 10 reflecting how well the essay aligns with that PDF. 
-(If the PDF is not directly visible, infer alignment from the typical structure & guidelines you'd expect in a markscheme.)
+Also provide a "markscheme" sub-score out of 10 reflecting how well the essay aligns with the uploaded markscheme PDF. 
+If the PDF is not visible to you, infer typical best practices from the context. 
         `;
       }
 
@@ -151,10 +151,10 @@ Please provide a "markscheme" sub-score out of 10 reflecting how well the essay 
 You are an essay feedback assistant. The user wrote this essay:
 """${essay}"""
 
-Provide an overall numeric "score" out of 100.
+Please produce constructive feedback with a numeric "score" out of 100.
 
-Also provide a "criteria" object with sub-scores out of 10 for:
-  - grammar
+Also return a "criteria" object with sub-scores (0-10) for:
+  - grammar (SPAG)
   - clarity
   - structure
   - analysis
@@ -162,9 +162,10 @@ ${markschemeClause}
 
 Then provide an array of "suggestions," each with:
   - "id" (unique string)
-  - "snippet" (literal text from the essay)
-  - "advice" (one or two sentences of feedback)
+  - "snippet" (literal text from the essay that needs improvement)
+  - "advice" (1-2 sentences explaining how to improve or a possible revision)
 
+Be specific and actionable: references to grammar fixes, clarity improvements, structural changes, or deeper analysis. 
 Return valid JSON only, e.g.:
 {
   "score": 85,
@@ -176,7 +177,11 @@ Return valid JSON only, e.g.:
     "markscheme": 7
   },
   "suggestions": [
-    ...
+    {
+      "id": "unique-123",
+      "snippet": "some snippet from essay",
+      "advice": "Here's how to fix..."
+    }
   ]
 }
       `;
@@ -212,7 +217,6 @@ Return valid JSON only, e.g.:
       setScore(parsed.score ?? "N/A");
 
       // sub-scores
-      // We must handle the case where GPT might not give everything
       if (parsed.criteria) {
         const c: CriteriaScores = {
           grammar: parsed.criteria.grammar ?? 0,
@@ -273,10 +277,19 @@ Return valid JSON only, e.g.:
 
   // --------------- RENDER ---------------
   return (
-    <div className="flex-1 overflow-auto p-3 border rounded bg-white">
-      {(isFeedbackLoading || isMarkUploadLoading) && (
-        <div className="text-center text-blue-600 mb-2">Processing...</div>
+    <div className="relative flex-1 overflow-auto p-3 border rounded bg-white">
+      {/* This custom overlay prevents any clicks while feedback is loading */}
+      {isFeedbackLoading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 text-white">
+          <div className="text-center p-6 bg-gray-800 rounded shadow-lg">
+            <h2 className="text-xl font-bold">Generating feedback...</h2>
+            <p className="mt-2">Please wait, this may take a few seconds.</p>
+          </div>
+        </div>
       )}
+
+      {/* Alternatively, if you have a LoadingModal you want to use, you could do: */}
+      {/* <LoadingModal isLoading={isFeedbackLoading || isMarkUploadLoading} /> */}
 
       <h2 className="font-bold text-lg mb-3">Generate Feedback</h2>
 
@@ -292,6 +305,7 @@ Return valid JSON only, e.g.:
         <button
           onClick={() => fileInputRef.current?.click()}
           className="bg-blue-100 text-blue-700 px-3 py-1 rounded"
+          disabled={isFeedbackLoading || isMarkUploadLoading}
         >
           {markSchemeUrl ? "Change Mark Scheme" : "Upload Mark Scheme"}
         </button>
@@ -310,6 +324,7 @@ Return valid JSON only, e.g.:
       <button
         onClick={handleGenerateFeedback}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
+        disabled={isFeedbackLoading || isMarkUploadLoading}
       >
         Generate Feedback
       </button>
@@ -318,18 +333,27 @@ Return valid JSON only, e.g.:
         <strong>Overall Score:</strong> {score}
       </p>
 
-      {/* Sub-score chart (if we have criteria) */}
+      {/* Sub-score chart (if you have one) */}
       {criteria && (
-        <>
-          <p className="mt-2 text-sm text-gray-600">
-            Sub-Scores (out of 10):
+        <div className="mt-2">
+          <p className="text-sm text-gray-600">
+            Sub-Scores (0–10):
           </p>
-          <FeedbackChart criteria={criteria} />
-        </>
+          {/* If you have a chart, you can do: 
+              <FeedbackChart criteria={criteria} />
+          */}
+          <p className="text-sm text-gray-700">Grammar: {criteria.grammar}</p>
+          <p className="text-sm text-gray-700">Clarity: {criteria.clarity}</p>
+          <p className="text-sm text-gray-700">Structure: {criteria.structure}</p>
+          <p className="text-sm text-gray-700">Analysis: {criteria.analysis}</p>
+          {criteria.markscheme != null && (
+            <p className="text-sm text-gray-700">Markscheme: {criteria.markscheme}</p>
+          )}
+        </div>
       )}
 
       {/* The read‐only essay with highlights */}
-      <div className="mt-4 border p-2 bg-gray-50 rounded">
+      <div className="mt-4 border p-2 bg-gray-50 rounded relative">
         <h3 className="font-semibold mb-1">Essay (with highlights)</h3>
         <div
           dangerouslySetInnerHTML={{ __html: highlightedEssay }}
