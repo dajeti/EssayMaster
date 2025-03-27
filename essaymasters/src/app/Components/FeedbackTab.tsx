@@ -365,13 +365,10 @@
 //     </div>
 //   );
 // }
-
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import FeedbackChart from "./FeedbackChart";
-
-import LoadingModal from "./LoadingModal"; // optional if you want to show a second modal
 
 interface FeedbackSuggestion {
   id: string;
@@ -380,6 +377,7 @@ interface FeedbackSuggestion {
   resolved: boolean;
 }
 
+// For the sub-scores, plus new "reasons" field 
 interface CriteriaScores {
   grammar: number;
   clarity: number;
@@ -388,25 +386,43 @@ interface CriteriaScores {
   markscheme?: number | null;
 }
 
+// Explanation for each sub-score
+interface CriteriaReasons {
+  grammar?: string;
+  clarity?: string;
+  structure?: string;
+  analysis?: string;
+  markscheme?: string;
+}
+
+// Full GPT response shape
 interface GPTResponse {
   score: number | string;
   criteria?: {
-    grammar: number;
-    clarity: number;
-    structure: number;
-    analysis: number;
+    grammar?: number;
+    clarity?: number;
+    structure?: number;
+    analysis?: number;
     markscheme?: number;
+  };
+  criteriaReasons?: {
+    grammar?: string;
+    clarity?: string;
+    structure?: string;
+    analysis?: string;
+    markscheme?: string;
   };
   suggestions?: FeedbackSuggestion[];
 }
 
 interface FeedbackTabProps {
   sessionId: string;
-  essay: string;
+  essay: string;  // raw text from parent
   suggestions: FeedbackSuggestion[];
   onNewSuggestions: (newSuggestions: FeedbackSuggestion[]) => void;
   onToggleResolved: (sugId: string) => void;
-  setParentLoading?: (loading: boolean) => void;
+  onHoverSuggestion: (sugId?: string) => void;
+  setParentLoading: (val: boolean) => void;
 }
 
 export default function FeedbackTab({
@@ -415,19 +431,22 @@ export default function FeedbackTab({
   suggestions,
   onNewSuggestions,
   onToggleResolved,
+  onHoverSuggestion,
   setParentLoading
 }: FeedbackTabProps) {
 
   const [score, setScore] = useState<string | number>("N/A");
   const [criteria, setCriteria] = useState<CriteriaScores | null>(null);
+  const [criteriaReasons, setCriteriaReasons] = useState<CriteriaReasons | null>(null);
 
+  // Markscheme
   const [markSchemeUrl, setMarkSchemeUrl] = useState("");
   const [isMarkUploadLoading, setIsMarkUploadLoading] = useState(false);
+  // For the GPT request
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // On mount, fetch Markscheme
   useEffect(() => {
     fetchMarkScheme();
   }, []);
@@ -449,7 +468,7 @@ export default function FeedbackTab({
     }
   }
 
-  // Markscheme Upload
+  // Upload a PDF markscheme
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -492,22 +511,26 @@ export default function FeedbackTab({
     }
   }
 
+  // GPT request to generate feedback
   async function handleGenerateFeedback() {
     if (!essay.trim()) {
       alert("No essay text found!");
       return;
     }
+
+    // Show parent's global loading modal
     setIsFeedbackLoading(true);
-    if (setParentLoading) setParentLoading(true); // block parent if desired
+    setParentLoading(true);
 
     try {
       let markschemeClause = "";
       if (markSchemeUrl) {
         markschemeClause = `
-Please also provide a "markscheme" sub-score out of 10 reflecting how well it aligns with the uploaded markscheme PDF. 
+Please also provide a "markscheme" sub-score (0-10) reflecting how well the essay aligns with the uploaded markscheme PDF.
         `;
       }
 
+      // We request "criteriaReasons" as well
       const feedbackPrompt = `
 You are an essay feedback assistant. The user wrote this essay:
 """${essay}"""
@@ -521,10 +544,19 @@ Also provide a "criteria" object with sub-scores out of 10 for:
   - analysis
 ${markschemeClause}
 
+Then provide a "criteriaReasons" object that explains each sub-score with a short sentence or two, e.g.:
+{
+  "grammar": "...",
+  "clarity": "...",
+  "structure": "...",
+  "analysis": "...",
+  "markscheme": "..."
+}
+
 Then provide an array of "suggestions," each with:
-  - "id" (unique string)
-  - "snippet" (literal text from the essay)
-  - "advice" (one or two sentences of feedback)
+  - "id"
+  - "snippet"
+  - "advice"
 
 Return valid JSON only.
       `;
@@ -555,6 +587,7 @@ Return valid JSON only.
 
       setScore(parsed.score ?? "N/A");
 
+      // Set the sub-scores
       if (parsed.criteria) {
         setCriteria({
           grammar: parsed.criteria.grammar ?? 0,
@@ -567,7 +600,14 @@ Return valid JSON only.
         setCriteria(null);
       }
 
-      // Send suggestions up to the parent so it can highlight the essay
+      // Set the sub-score explanations
+      if (parsed.criteriaReasons) {
+        setCriteriaReasons(parsed.criteriaReasons);
+      } else {
+        setCriteriaReasons(null);
+      }
+
+      // suggestions
       const sugs = parsed.suggestions || [];
       sugs.forEach((s) => (s.resolved = false));
       onNewSuggestions(sugs);
@@ -577,18 +617,16 @@ Return valid JSON only.
       alert("Error: " + err.message);
     } finally {
       setIsFeedbackLoading(false);
-      if (setParentLoading) setParentLoading(false);
+      // Hide parent's global loading modal
+      setParentLoading(false);
     }
   }
 
   return (
     <div className="flex-1 overflow-auto p-3 border rounded bg-white relative">
-      {/* If you want a local loading spinner (instead of parent's LoadingModal) */}
-      {/* <LoadingModal isLoading={isFeedbackLoading || isMarkUploadLoading} /> */}
-
       <h2 className="font-bold text-lg mb-3">Generate Feedback</h2>
 
-      {/* Markscheme Upload */}
+      {/* Markscheme Upload Section */}
       <div className="mb-4">
         <input
           type="file"
@@ -616,6 +654,7 @@ Return valid JSON only.
         )}
       </div>
 
+      {/* Generate Button */}
       <button
         onClick={handleGenerateFeedback}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
@@ -635,10 +674,42 @@ Return valid JSON only.
             Sub-Scores (out of 10):
           </p>
           <FeedbackChart criteria={criteria} />
+
+          {/* If you want to show the reasons for each sub-score: */}
+          {criteriaReasons && (
+            <div className="mt-2 border rounded p-2 bg-gray-50 text-sm">
+              <p className="font-semibold">Score Explanations:</p>
+              {criteriaReasons.grammar && (
+                <p>
+                  <strong>Grammar:</strong> {criteriaReasons.grammar}
+                </p>
+              )}
+              {criteriaReasons.clarity && (
+                <p>
+                  <strong>Clarity:</strong> {criteriaReasons.clarity}
+                </p>
+              )}
+              {criteriaReasons.structure && (
+                <p>
+                  <strong>Structure:</strong> {criteriaReasons.structure}
+                </p>
+              )}
+              {criteriaReasons.analysis && (
+                <p>
+                  <strong>Analysis:</strong> {criteriaReasons.analysis}
+                </p>
+              )}
+              {criteriaReasons.markscheme && (
+                <p>
+                  <strong>Markscheme:</strong> {criteriaReasons.markscheme}
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
 
-      {/* Suggestions List */}
+      {/* Suggestions */}
       <div className="mt-4">
         {suggestions.map((sug) => (
           <div
@@ -648,6 +719,8 @@ Return valid JSON only.
                 ? "bg-gray-200 text-gray-500"
                 : "bg-white hover:bg-gray-100"
             }`}
+            onMouseEnter={() => onHoverSuggestion(sug.id)}
+            onMouseLeave={() => onHoverSuggestion(undefined)}
           >
             <strong>Suggestion:</strong> {sug.advice}
             <button
@@ -662,3 +735,4 @@ Return valid JSON only.
     </div>
   );
 }
+

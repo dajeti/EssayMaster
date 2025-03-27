@@ -169,10 +169,9 @@
 //     </div>
 //   );
 // }
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LoadingModal from "./LoadingModal";
 import * as pdfjsLib from "pdfjs-dist";
 import { useDebounce } from "use-debounce";
@@ -188,18 +187,23 @@ interface FeedbackSuggestion {
 }
 
 export default function EssayForm({ sessionId }: { sessionId: string }) {
-  const [rawEssay, setRawEssay] = useState(""); // unmodified essay text
-  const [highlightedEssay, setHighlightedEssay] = useState(""); // read-only HTML with <mark> tags
+  const [rawEssay, setRawEssay] = useState("");
+  const [highlightedEssay, setHighlightedEssay] = useState("");
   const [suggestions, setSuggestions] = useState<FeedbackSuggestion[]>([]);
-
   const [isLoading, setIsLoading] = useState(false);
+
+  const [hoveringId, setHoveringId] = useState<string | null>(null);
+
+  // For contentEditable, we also maintain a "last known HTML" to avoid repeated merges
+  const editableRef = useRef<HTMLDivElement>(null);
+
+  // Debounce for saving to server
   const [debouncedEssay] = useDebounce(rawEssay, 2000);
 
   useEffect(() => {
     loadSession();
   }, [sessionId]);
 
-  // Load existing essay text
   async function loadSession() {
     setIsLoading(true);
     try {
@@ -208,8 +212,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
         const data = await res.json();
         if (data.essay) {
           setRawEssay(data.essay);
-          // No highlights or suggestions initially
-          setHighlightedEssay(data.essay);
+          setHighlightedEssay(data.essay); // no highlights yet
         }
       }
     } catch (error) {
@@ -219,7 +222,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     }
   }
 
-  // Auto-save changes to the essay
+  // Save to server
   useEffect(() => {
     if (debouncedEssay) {
       saveEssay(debouncedEssay);
@@ -260,13 +263,11 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            extractedText += textContent.items
-              .map((item: any) => item.str)
-              .join(" ") + "\n\n";
+            extractedText += textContent.items.map((item: any) => item.str).join(" ") + "\n\n";
           }
           setRawEssay(extractedText.trim());
-          setHighlightedEssay(extractedText.trim()); // no highlights yet
-          setSuggestions([]); // clear old suggestions
+          setSuggestions([]);
+          setHighlightedEssay(extractedText.trim());
         } catch (parseErr) {
           console.error("Error reading PDF text:", parseErr);
         } finally {
@@ -280,62 +281,134 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     }
   }
 
-  // Called by FeedbackTab after GPT returns suggestions
-  function handleNewSuggestions(newSuggestions: FeedbackSuggestion[]) {
-    setSuggestions(newSuggestions);
-    // Re-highlight the essay with these suggestions
-    highlightSnippets(rawEssay, newSuggestions);
+  // Called by FeedbackTab once GPT returns new suggestions
+  function handleNewSuggestions(newSugs: FeedbackSuggestion[]) {
+    setSuggestions(newSugs);
+    highlightSnippets(rawEssay, newSugs, hoveringId);
   }
 
-  // Called by FeedbackTab to toggle a suggestion's "resolved" state
+  // Called by FeedbackTab to toggle resolved
   function toggleSuggestionResolved(sugId: string) {
-    const updated = suggestions.map((sug) => {
-      if (sug.id === sugId) {
-        return { ...sug, resolved: !sug.resolved }; // toggle
-      }
-      return sug;
-    });
+    const updated = suggestions.map((s) =>
+      s.id === sugId ? { ...s, resolved: !s.resolved } : s
+    );
     setSuggestions(updated);
-    highlightSnippets(rawEssay, updated);
+    highlightSnippets(rawEssay, updated, hoveringId);
   }
 
-  // Rebuild the highlightedEssay HTML from rawEssay + suggestions
-  function highlightSnippets(plainText: string, sugs: FeedbackSuggestion[]) {
+  // Called by FeedbackTab on hover
+  function handleHoverSuggestion(sugId?: string) {
+    setHoveringId(sugId || null);
+    highlightSnippets(rawEssay, suggestions, sugId || null);
+  }
+  
+  // Rebuild the highlight HTML
+  function highlightSnippets(
+    plainText: string,
+    sugs: FeedbackSuggestion[],
+    hoverId: string | null
+  ) {
     let result = plainText;
-    // Filter out resolved suggestions
-    const active = sugs.filter((sug) => !sug.resolved);
-    // Sort by snippet length desc
+    const active = sugs.filter((s) => !s.resolved);
     active.sort((a, b) => b.snippet.length - a.snippet.length);
 
     for (const sug of active) {
-      // naive approach: first occurrence, case-insensitive
-      const snippetRegex = new RegExp(sug.snippet, "i");
+      // Modify the replacement to escape regex special characters
+      const escapedSnippet = sug.snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const snippetRegex = new RegExp(escapedSnippet, "g");
+      // const snippetRegex = new RegExp(sug.snippet, "g");
+      
+      const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
       result = result.replace(
         snippetRegex,
-        `<mark class="bg-yellow-100">${sug.snippet}</mark>`
+        `<mark class="${colorClass}">${sug.snippet}</mark>`
       );
     }
+
     setHighlightedEssay(result);
   }
 
+  // ***** CRUCIAL for "contentEditable" approach *****
+  // Whenever user types in the editable div, we parse out the raw text by removing <mark> etc.
+  // Then we re-run highlight with suggestions.
+  //new changes
+  // Add a ref to store the text offset of the cursor
+  const savedSelection = useRef<number | null>(null);
+
+  // Modify handleEditableInput to save cursor position
+  function handleEditableInput() {
+    if (!editableRef.current) return;
+
+    // Save current cursor position as text offset
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(editableRef.current);
+      preCaretRange.setEnd(range.startContainer, range.startOffset);
+      savedSelection.current = preCaretRange.toString().length;
+    }
+
+    const currentHTML = editableRef.current.innerHTML;
+    const rawNoMarks = currentHTML.replace(/<mark.*?>(.*?)<\/mark>/g, "$1");
+    setRawEssay(rawNoMarks);
+    highlightSnippets(rawNoMarks, suggestions, hoveringId);
+  }
+
+  // Add useEffect to restore cursor position
+  useEffect(() => {
+    if (editableRef.current && savedSelection.current !== null) {
+      const textNodeInfo = getTextNodeAtOffset(editableRef.current, savedSelection.current);
+      if (textNodeInfo) {
+        const range = document.createRange();
+        range.setStart(textNodeInfo.node, textNodeInfo.offset);
+        range.collapse(true);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+      savedSelection.current = null;
+    }
+  }, [highlightedEssay]);
+
+  // Add helper function to find text node
+  function getTextNodeAtOffset(element: Node, offset: number) {
+    let node: Node | null = element;
+    let currentOffset = 0;
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    while ((node = walker.nextNode())) {
+      const textLength = node.textContent?.length || 0;
+      if (currentOffset + textLength >= offset) {
+        return { node, offset: offset - currentOffset };
+      }
+      currentOffset += textLength;
+    }
+    return null;
+  }
+  // changes end
   return (
     <div className="flex flex-col w-full min-h-screen pt-6 mt-14 relative bg-white text-black">
-      <LoadingModal isLoading={isLoading} />
+      {/* Make sure the modal is on top of EVERYTHING */}
+      <div className="z-[9999]">
+        <LoadingModal isLoading={isLoading} />
+      </div>
 
       <div className="flex flex-1 h-full overflow-hidden">
-        {/* LEFT: "Main essay" with highlight */}
-        <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col">
+        {/* LEFT: contentEditable with highlights */}
+        <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col relative">
           <h2 className="text-xl font-bold text-gray-700 mb-3">Your Essay</h2>
 
-          {/* Read-only container with highlights */}
           <div className="flex-1 border rounded p-3 bg-gray-50 overflow-auto">
             <div
-              className="text-base text-gray-700 leading-relaxed"
+              ref={editableRef}
+              className="text-base text-gray-700 leading-relaxed outline-none"
+              contentEditable // user can type here
+              onInput={handleEditableInput}
+              suppressContentEditableWarning
               dangerouslySetInnerHTML={{ __html: highlightedEssay }}
             />
           </div>
 
-          {/* If user wants to re-upload PDF for the essay */}
           <div className="mt-4">
             <label className="inline-block bg-blue-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-blue-500">
               Upload PDF (Essay)
@@ -349,7 +422,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
           </div>
         </div>
 
-        {/* RIGHT: feedback tab with sub-scores, suggestions list, etc. */}
+        {/* RIGHT: feedback panel */}
         <div className="w-1/3 bg-white p-4 flex flex-col">
           <TabsPanel
             sessionId={sessionId}
@@ -357,7 +430,8 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
             suggestions={suggestions}
             onNewSuggestions={handleNewSuggestions}
             onToggleResolved={toggleSuggestionResolved}
-            setParentLoading={setIsLoading} // if needed
+            onHoverSuggestion={handleHoverSuggestion}
+            setParentLoading={setIsLoading}
           />
         </div>
       </div>

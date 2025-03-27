@@ -48,7 +48,6 @@
 //     </div>
 //   );
 // }
-
 "use client";
 
 import React, { useState } from "react";
@@ -64,11 +63,12 @@ interface FeedbackSuggestion {
 
 interface TabsPanelProps {
   sessionId: string;
-  essay: string; 
+  essay: string;
   suggestions: FeedbackSuggestion[];
   onNewSuggestions: (newSuggestions: FeedbackSuggestion[]) => void;
   onToggleResolved: (sugId: string) => void;
-  setParentLoading?: (loading: boolean) => void; 
+  onHoverSuggestion: (sugId?: string) => void;
+  setParentLoading: (val: boolean) => void;
 }
 
 export default function TabsPanel({
@@ -77,6 +77,7 @@ export default function TabsPanel({
   suggestions,
   onNewSuggestions,
   onToggleResolved,
+  onHoverSuggestion,
   setParentLoading
 }: TabsPanelProps) {
   const [activeTab, setActiveTab] = useState<"FEEDBACK" | "CHAT">("FEEDBACK");
@@ -117,6 +118,7 @@ export default function TabsPanel({
           suggestions={suggestions}
           onNewSuggestions={onNewSuggestions}
           onToggleResolved={onToggleResolved}
+          onHoverSuggestion={onHoverSuggestion}
           setParentLoading={setParentLoading}
         />
       )}
