@@ -379,4 +379,3 @@ export default function TabsPanel({ essay }: { essay: string }) {
     </div>
   );
 }
-//

@@ -81,7 +81,7 @@ export default function Dashboard() {
   const deleteSession = async (sessionId: string) => {
     const confirmDelete = confirm("Are you sure you want to delete this session?");
     if (!confirmDelete) return;
-
+    console.log("Fetched sessions data:", setSessions);
     try {
       const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
 
@@ -105,7 +105,7 @@ export default function Dashboard() {
   }
 
   // Filtered and sorted sessions
-  const filteredSessions = sessions
+  const filteredSessions = Array.from(sessions)
     .filter((session) =>
       session.title.toLowerCase().includes(search.toLowerCase())
     )
