@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { useSession ,signOut} from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 
 const Profile = () => {
     // Define state to manage dropdown open/close
@@ -9,6 +11,11 @@ const Profile = () => {
     const [firstName, setFirstName] = useState(""); // State for first name
     const [lastName, setLastName] = useState(""); // State for last name 
     const { data: session, status } = useSession();
+
+    const router = useRouter();
+    const redirectToDashboard = () => {
+        router.push("/dashboard");
+    };
 
     useEffect(() => {
         if (session?.user?.firstName) {
@@ -38,7 +45,7 @@ const Profile = () => {
 
 
     // Toggle the dropdown open/close
-    const toggleDropdown = () => setIsDropdownOpen((prev) => !prev); // Toggle dropdown menu visibility
+    const toggleDropdown = () => setDropdownOpen((prev) => !prev); // Toggle dropdown menu visibility
 
 
 
@@ -83,3 +90,5 @@ export default Profile;
 {/* **Flex Column Layout for Dropdown** */ }
 {/* <div className="flex flex-col items-center p-3"> */ }
 {/* **Log out Button underneath** */ }
+
+
