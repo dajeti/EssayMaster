@@ -1,5 +1,4 @@
 "use client";
-// do this guys npm install chart.js react-chartjs-2
 
 import { Bar } from "react-chartjs-2";
 import {
@@ -11,24 +10,15 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import React from "react";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface CriteriaScores {
   grammar: number;
   clarity: number;
   structure: number;
   analysis: number;
-  markscheme?: number | null; 
-  // If markscheme is not present, we can store null or skip it
+  markscheme?: number | null;
 }
 
 interface FeedbackChartProps {
@@ -36,11 +26,10 @@ interface FeedbackChartProps {
 }
 
 export default function FeedbackChart({ criteria }: FeedbackChartProps) {
-  // Build arrays of labels & data dynamically, skipping markscheme if null
+  // Dynamically build out the labels and data for whichever sub-scores exist
   const labels: string[] = [];
   const scores: number[] = [];
 
-  // Add each category if it has a numeric value
   labels.push("Grammar");
   scores.push(criteria.grammar);
   labels.push("Clarity");
@@ -50,8 +39,7 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
   labels.push("Analysis");
   scores.push(criteria.analysis);
 
-  // If markscheme is provided and not null
-  if (criteria.markscheme != null) {
+  if (criteria.markscheme !== null && criteria.markscheme !== undefined) {
     labels.push("Markscheme");
     scores.push(criteria.markscheme);
   }
@@ -60,29 +48,43 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
     labels,
     datasets: [
       {
-        label: "Sub-Scores (out of 10)",
+        label: "Score (out of 10)",
         data: scores,
+        backgroundColor: [
+          "#FF6384", // grammar
+          "#36A2EB", // clarity
+          "#FFCE56", // structure
+          "#4BC0C0", // analysis
+          "#9966FF", // markscheme
+        ].slice(0, scores.length),
+        borderWidth: 2,
+        borderRadius: 4,
       },
     ],
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false as boolean,
     plugins: {
-      legend: {
-        position: "top" as const,
-      },
+      legend: { display: false },
+      tooltip: { enabled: true },
     },
     scales: {
       y: {
-        beginAtZero: true,
         max: 10,
+        grid: { color: "#e5e7eb" },
+        ticks: { stepSize: 2 },
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: "#6b7280" },
       },
     },
   };
 
   return (
-    <div className="max-w-md mt-4">
+    <div className="h-64 mt-4">
       <Bar data={data} options={options} />
     </div>
   );

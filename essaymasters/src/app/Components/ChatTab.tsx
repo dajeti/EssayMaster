@@ -1,3 +1,10 @@
+//    // Minimal "full essay" check
+//    const blocked = ["write an essay", "give me an essay", "entire essay"];
+//    if (blocked.some((b) => chatInput.toLowerCase().includes(b))) {
+//      alert("Requests for a full essay are not allowed!");
+//      return;
+//    }
+
 "use client";
 
 import React, { useState } from "react";
@@ -12,42 +19,29 @@ export default function ChatTab({ essay }: { essay: string }) {
   async function handleChatSubmit() {
     if (!chatInput.trim()) return;
 
-    // Minimal "full essay" check
-    const blocked = ["write an essay", "give me an essay", "entire essay"];
-    if (blocked.some((b) => chatInput.toLowerCase().includes(b))) {
-      alert("Requests for a full essay are not allowed!");
-      return;
-    }
-
-    // Add user message
+    // Add user message to the chat
     const newMessages = [...chatMessages, { sender: "user", text: chatInput }];
     setChatMessages(newMessages);
     setIsChatLoading(true);
 
     try {
-      // Some system prompt for your chat, referencing the user essay
+      // A simple system prompt referencing the user’s essay
       const chatPrompt = `
-      You are an AI persona from EssayMaster, a platform that helps students improve their essays. 
-      Your role is to provide suggestions, clarifications, and guidance on writing skills. 
-      Do NOT write entire essays for them. 
-      The user's current essay is:
-      """${essay}"""
-      Respond concisely and focus on helping them improve.
+You are an AI tutor. The user wrote this essay:
+"""${essay}"""
+Focus on giving clarifications and suggestions. Do not write entire essays on request.
       `;
 
       const resp = await fetch("/api/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: chatPrompt,
-          inputText: chatInput,
-        }),
+        body: JSON.stringify({ prompt: chatPrompt, inputText: chatInput }),
       });
 
       if (!resp.ok) {
         const e = await resp.text();
         console.error("Chat error detail:", e);
-        throw new Error("Chat request failed with " + resp.status);
+        throw new Error("Chat request failed");
       }
 
       const data = await resp.json();
@@ -69,6 +63,7 @@ export default function ChatTab({ essay }: { essay: string }) {
       )}
 
       <h2 className="font-bold text-lg mb-2">Chat</h2>
+
       <div className="flex-1 border rounded p-2 overflow-auto bg-gray-50 mb-2">
         {chatMessages.length === 0 && (
           <div className="text-gray-400 italic">Ask something…</div>
