@@ -10,6 +10,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { ThemeProvider } from "next-themes";
+
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -84,8 +86,11 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
   };
 
   return (
+    <ThemeProvider attribute="class">
+
     <div className="h-64 mt-4">
       <Bar data={data} options={options} />
     </div>
+    </ThemeProvider>
   );
 }

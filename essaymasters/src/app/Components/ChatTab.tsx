@@ -8,6 +8,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { ThemeProvider } from "next-themes";
+
 
 export default function ChatTab({ essay }: { essay: string }) {
   const [chatMessages, setChatMessages] = useState<
@@ -57,14 +59,15 @@ Focus on giving clarifications and suggestions. Do not write entire essays on re
   }
 
   return (
-    <div className="flex flex-col flex-1 p-3 border rounded bg-white">
+    <ThemeProvider attribute="class">
+    <div className="flex flex-col flex-1 p-3 border rounded bg-white dark:bg-darker-custom">
       {isChatLoading && (
         <div className="text-center text-blue-600 mb-2">Processing...</div>
       )}
 
-      <h2 className="font-bold text-lg mb-2">Chat</h2>
+      <h2 className="font-bold text-lg dark:text-white mb-2">Chat</h2>
 
-      <div className="flex-1 border rounded p-2 overflow-auto bg-gray-50 mb-2">
+      <div className="flex-1 border rounded p-2 overflow-auto bg-gray-50 dark:bg-blue-custom-dark mb-2">
         {chatMessages.length === 0 && (
           <div className="text-gray-400 italic">Ask something…</div>
         )}
@@ -91,7 +94,7 @@ Focus on giving clarifications and suggestions. Do not write entire essays on re
       <div className="flex items-center">
         <input
           type="text"
-          className="flex-1 border rounded p-2 mr-2 text-black"
+          className="flex-1 border rounded p-2 mr-2 text-black dark:text-white dark:bg-blue-custom-dark"
           placeholder="Type here..."
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
@@ -104,5 +107,6 @@ Focus on giving clarifications and suggestions. Do not write entire essays on re
         </button>
       </div>
     </div>
+    </ThemeProvider>
   );
 }

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import FeedbackChart from "./FeedbackChart";
+import { ThemeProvider } from "next-themes";
+
 
 interface FeedbackSuggestion {
   id: string;
@@ -310,7 +312,9 @@ export default function FeedbackTab({
   // Render
   // -------------------------
   return (
-    <div className="flex-1 overflow-auto p-3 border rounded bg-white relative">
+    <ThemeProvider attribute="class">
+
+    <div className="flex-1 overflow-auto p-3 border rounded bg-white dark:bg-blue-custom-dark relative">
       <h2 className="font-bold text-lg mb-3">Generate Feedback</h2>
 
       {/* Markscheme Upload */}
@@ -367,7 +371,7 @@ export default function FeedbackTab({
 
           {/* If you want to display the explanations for each sub-score */}
           {criteriaReasons && (
-            <div className="mt-2 border rounded p-2 bg-gray-50 text-sm">
+            <div className="mt-2 border rounded p-2 bg-gray-50 dark:bg-darker-custom text-sm">
               <p className="font-semibold">Score Explanations:</p>
               {Object.entries(criteriaReasons).map(([key, val]) => (
                 <p key={key}>
@@ -386,7 +390,7 @@ export default function FeedbackTab({
           <div
             key={sug.id}
             className={`p-2 border rounded mb-2 transition-colors ${
-              sug.resolved ? "bg-gray-200" : "bg-white hover:bg-gray-50"
+              sug.resolved ? "bg-gray-200 dark:bg-gray-700" : "bg-white dark:bg-darker-custom hover:bg-gray-50"
             }`}
             onMouseEnter={() => onHoverSuggestion(sug.id)}
             onMouseLeave={() => onHoverSuggestion()}
@@ -407,5 +411,6 @@ export default function FeedbackTab({
         ))}
       </div>
     </div>
+    </ThemeProvider>
   );
 }

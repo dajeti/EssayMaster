@@ -5,6 +5,7 @@ import LoadingModal from "./LoadingModal";
 import * as pdfjsLib from "pdfjs-dist";
 import { useDebounce } from "use-debounce";
 import TabsPanel from "./TabsPanel";
+import { ThemeProvider } from "next-themes";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
@@ -216,7 +217,8 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
   }
   // changes end
   return (
-    <div className="flex flex-col w-full min-h-screen pt-6 mt-14 relative bg-white text-black">
+    <ThemeProvider attribute="class">
+    <div className="flex flex-col w-full min-h-screen pt-6 mt-14 relative bg-white dark:bg-darker-custom text-black">
       {/* Make sure the modal is on top of EVERYTHING */}
       <div className="z-[9999]">
         <LoadingModal isLoading={isLoading} />
@@ -225,9 +227,9 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
       <div className="flex flex-1 h-full overflow-hidden">
         {/* LEFT: contentEditable with highlights */}
         <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col relative">
-          <h2 className="text-xl font-bold text-gray-700 mb-3">Your Essay</h2>
+          <h2 className="text-xl font-bold text-gray-700 mb-3 dark:text-white">Your Essay</h2>
 
-          <div className="flex-1 border rounded p-3 bg-gray-50 overflow-auto">
+          <div className="flex-1 border rounded p-3 dark:bg-blue-custom-dark overflow-auto">
             <div
               ref={editableRef}
               className="text-base text-gray-700 leading-relaxed outline-none"
@@ -252,7 +254,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
         </div>
 
         {/* RIGHT: feedback panel */}
-        <div className="w-1/3 bg-white p-4 flex flex-col">
+        <div className="w-1/3 bg-white dark:bg-darker-custom p-4 flex flex-col">
           <TabsPanel
             sessionId={sessionId}
             essay={rawEssay}
@@ -265,5 +267,6 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
         </div>
       </div>
     </div>
+    </ThemeProvider>
   );
 }
