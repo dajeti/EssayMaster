@@ -40,13 +40,12 @@ const NavigationBar = () => {
           >
             <Link className="text-white" href="/faq">FAQ</Link>
           </span>
-          <span>
-            {/* Use the Profile component */}
-            <Profile />
-          </span>
-          <div className="flex gap-10 pt-7 md:pt-9"></div>
-
         </div>
+        <div className="-mt-1.5 flex justify-center text-white ml-auto">
+          {/* Use the Profile component */}
+          <Profile />
+        </div>
+        <div className="flex gap-10 pt-7 md:pt-9"></div>
       </nav>
     </ThemeProvider>
   );

@@ -46,7 +46,7 @@ const Profile = () => {
 
   console.log(session?.user);
   return (
-    <div>
+    <div className="relative">
       <button
         onClick={toggleDropdown}
         className="flex items-center h-full px-4 py-2 hover:underline focus:outline-none"
@@ -56,10 +56,10 @@ const Profile = () => {
       </button>
 
       {isDropdownOpen && (
-        <div className="flex flex-col items-center p-3">
+        <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white shadow-lg rounded-lg border border-gray-300 p-1">
           <button
             onClick={redirectToDashboard} // This is the redirect button
-            className="mt-4 w-full px-4 py-2 text-center text-white bg-green-500 hover:bg-green-700 rounded-lg"
+            className="mt-[-1px] w-full px-4 py-2 text-center text-white bg-green-500 hover:bg-green-700 rounded-lg"
             /* style={{
                         backgroundImage: 'repeating-linear-gradient(45deg, green 0%, green 25%, white 25%, white 50%)',
                         backgroundSize: '15px 15px',
@@ -69,7 +69,7 @@ const Profile = () => {
           </button>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="mt-4 w-full px-4 py-2 text-center text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
+            className="mt-2.5 w-full px-4 py-2 text-center text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
           >
             Logout
           </button>
