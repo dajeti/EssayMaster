@@ -20,7 +20,7 @@ export default function Home() {
 
           </p>
 
-          <br /><hr className="w-96 h-1 mx-auto my-4 bg-white -100 border-0 rounded-sm md:my-10 dark:bg-white-700"/>
+          <br /><hr className="w-96 h-1 mx-auto my-4 bg-gray-300 border-0 rounded-sm md:my-10 dark:bg-gray-600"/>
 
           <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white">
             Need technical support or have suggestions to enhance your experience (and others&apos;)? Reach out to us at the following email address:

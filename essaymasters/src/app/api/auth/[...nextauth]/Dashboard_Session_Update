@@ -1,0 +1,52 @@
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+
+// UpdateAi
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+    const session = await getSession({ req });
+  
+    if (!session) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+  
+    const { id } = req.query;
+  
+    if (req.method === "PUT") {
+      const { title, essay, updatedAt } = req.body;
+  
+      try {
+        if (title) {
+          await prisma.session.update({
+            where: { id: String(id) },
+            data: { essay: title, updatedAt: new Date(updatedAt) },
+          });
+        } else if (essay) {
+          await prisma.session.update({
+            where: { id: String(id) },
+            data: { essay, updatedAt: new Date() },
+          });
+        } else {
+          await prisma.session.update({
+            where: { id: String(id) },
+            data: { updatedAt: new Date() },
+          });
+        }
+        res.status(200).json({ success: true });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    } else if (req.method === "DELETE") {
+      try {
+        await prisma.session.delete({
+          where: { id: String(id) },
+        });
+        res.status(200).json({ success: true });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    } else {
+      res.status(405).json({ message: "Method not allowed" });
+    }
+  };

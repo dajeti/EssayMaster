@@ -2,13 +2,10 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  MagnifyingGlassIcon, 
-  PlusCircleIcon, 
-  TrashIcon 
-} from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, PlusCircleIcon, TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 
 // Enhanced interface to match both implementations
 interface Session {
@@ -28,7 +25,7 @@ export default function Dashboard() {
   // Consolidated authentication and session fetching logic
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (!session) {
       router.push("/login");
       return;
@@ -39,7 +36,7 @@ export default function Dashboard() {
         setLoading(true);
         const res = await fetch("/api/sessions");
         const data = await res.json();
-        
+
         // Handle different API response structures
         const sessionsData = data.sessions || data;
         setSessions(sessionsData);
@@ -54,8 +51,20 @@ export default function Dashboard() {
   }, [status, session, router]);
 
   // Function to open a session (passes session ID to maintain routing consistency)
-  const openSession = (sessionId: string) => {
-    router.push("/", { query: { sessionId } });
+  const openSession = async (sessionId: string) => {
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/open`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        router.push("/", { query: { sessionId } });
+      } else {
+        console.error("Failed to update session open time");
+      }
+    } catch (error) {
+      console.error("Error updating session open time:", error);
+    }
   };
 
   // Create new session function
@@ -66,14 +75,41 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ essay: "" }),
       });
-  
+
       const data = await res.json();
-  
+
       if (data.sessionId) {
         router.push("/", { query: { sessionId: data.sessionId } });
       }
     } catch (error) {
       console.error("Error creating new session:", error);
+    }
+  };
+
+  // Rename file within session
+  const editEssayName = async (sessionId: string) => {
+    const newTitle = prompt("Enter the new essay title:");
+    if (newTitle) {
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: newTitle, updatedAt: new Date() }), // retrieve da
+        });
+
+        if (res.ok) {
+          setSessions((prev) =>
+            prev.map((session) =>
+              session.id === sessionId ? { ...session, title: newTitle } : session
+            )
+          );
+          alert("Essay name updated successfully!");
+        } else {
+          console.error("Failed to update essay name");
+        }
+      } catch (error) {
+        console.error("Error updating essay name:", error);
+      }
     }
   };
 
@@ -128,7 +164,7 @@ export default function Dashboard() {
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
 
-        <button 
+        <button
           onClick={createNewSession}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center transition"
         >
@@ -145,19 +181,26 @@ export default function Dashboard() {
           </p>
         ) : (
           filteredSessions.map((session) => (
-            <div 
-              key={session.id} 
+            <div
+              key={session.id}
               className="p-4 bg-white rounded-lg shadow hover:shadow-lg dark:bg-gray-800 transition"
             >
               <div className="flex justify-between items-center mb-2">
-                <div 
-                  onClick={() => openSession(session.id)} 
+                <div
+                  onClick={() => openSession(session.id)}
                   className="w-full cursor-pointer"
                 >
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                     {session.title || 'Untitled Session'}
                   </h2>
                 </div>
+                <button
+                  onClick={() => editEssayName(session.id)}
+                  className="ml-2 text-blue-600 hover:text-blue-800 transition"
+                  aria-label="Edit Session"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                </button>
                 <button
                   onClick={() => deleteSession(session.id)}
                   className="ml-2 text-red-600 hover:text-red-800 transition"
@@ -170,8 +213,8 @@ export default function Dashboard() {
                 Last updated: {new Date(session.updatedAt).toLocaleString()}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {Array.isArray(session.feedback) 
-                  ? session.feedback.length 
+                {Array.isArray(session.feedback)
+                  ? session.feedback.length
                   : session.feedback || 0} feedback comments
               </p>
             </div>
