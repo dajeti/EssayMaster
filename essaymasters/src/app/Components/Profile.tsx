@@ -52,7 +52,8 @@ const Profile = () => {
         className="flex items-center h-full px-4 py-2 hover:underline focus:outline-none"
       >
         <UserCircleIcon className="h-8 w-8 text-white hover:cursor-pointer hover:text-blue-950 hover:shadow-lg" />
-        <span>Welcome {session?.user?.email}</span>
+        <span>Welcome {session?.user?.firstName ? 
+        session.user.firstName + " " + session.user.lastName : session?.user?.email}</span>
       </button>
 
       {isDropdownOpen && (

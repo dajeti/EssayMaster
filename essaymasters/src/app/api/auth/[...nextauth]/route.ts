@@ -44,8 +44,8 @@ const authOptions = {
         session.user = {
           id: token.sub,
           email: token.email,
-          firstname: token.firstname, // Ensure lowercase consistency
-          lastname: token.lastname,   // Ensure lowercase consistency
+          firstName: token.firstName, // Ensure lowercase consistency
+          lastName: token.lastName,   // Ensure lowercase consistency
         };
       }
       // console.log(session);
@@ -57,8 +57,8 @@ const authOptions = {
       if (user) {
         token.sub = user.id;
         token.email = user.email;
-        token.firstname = user.firstname; // Ensure lowercase consistency
-        token.lastname = user.lastname;   // Ensure lowercase consistency
+        token.firstName = user.firstName; // Ensure lowercase consistency
+        token.lastName = user.lastName;   // Ensure lowercase consistency
       }
       return token;
     },

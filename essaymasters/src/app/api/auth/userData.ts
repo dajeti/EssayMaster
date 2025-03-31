@@ -5,13 +5,13 @@ import { getSession } from "next-auth/react"; // To get the session
 export default async function handler(req, res) {
     const session = await getSession({ req });
 
-    if (!session || !session.user?.firstName) {
+    if (!session || !session.user?.id) {
         return res.status(401).json({ message: "User not authenticated" });
     }
 
     try {
         const user = await prisma.user.findUnique({
-            where: { id: session.user.firstName }, // Use user.id here, not firstName
+            where: { id: session.user.id }, // Use user.id here, not firstName
         });
 
         if (!user) {
