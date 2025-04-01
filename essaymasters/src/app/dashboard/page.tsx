@@ -117,10 +117,11 @@ export default function Dashboard() {
   const deleteSession = async (sessionId: string) => {
     const confirmDelete = confirm("Are you sure you want to delete this session?");
     if (!confirmDelete) return;
-    console.log("Fetched sessions data:", setSessions);
+    
     try {
-      const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
-
+      // Change this line to use query parameters as expected by the API
+      const res = await fetch(`/api/sessions?sessionId=${sessionId}`, { method: "DELETE" });
+  
       if (res.ok) {
         setSessions((prev) => prev.filter((session) => session.id !== sessionId));
       } else {
