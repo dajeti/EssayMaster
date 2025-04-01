@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MagnifyingGlassIcon, PlusCircleIcon, TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
 import Header from "../Components/Header";
-// Enhanced interface to match both implementations
+
 interface Session {
   id: string;
   title: string;
@@ -50,7 +50,7 @@ export default function Dashboard() {
     fetchSessions();
   }, [status, session, router]);
 
-  // Function to open a session (passes session ID to maintain routing consistency)
+  // Function to open a session
   const openSession = async (sessionId: string) => {
     try {
       const res = await fetch(`/api/sessions/${sessionId}/open`, {
@@ -58,7 +58,7 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
-        router.push("/", { query: { sessionId } });
+        router.push(`/?sessionId=${sessionId}`);
       } else {
         console.error("Failed to update session open time");
       }
@@ -67,34 +67,42 @@ export default function Dashboard() {
     }
   };
 
-  // Create new session function
+  // Create new session function with title prompt
   const createNewSession = async () => {
     try {
+      const sessionTitle = prompt("Enter a name for your new session:", "Untitled Session");
+      if (sessionTitle === null) return; // User cancelled the prompt
+      
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ essay: "" }),
+        body: JSON.stringify({ 
+          essay: "",
+          title: sessionTitle || "Untitled Session" 
+        }),
       });
 
       const data = await res.json();
 
       if (data.sessionId) {
-        router.push("/", { query: { sessionId: data.sessionId } });
+        router.push(`/?sessionId=${data.sessionId}`);
       }
     } catch (error) {
       console.error("Error creating new session:", error);
     }
   };
 
-  // Rename file within session
-  const editEssayName = async (sessionId: string) => {
-    const newTitle = prompt("Enter the new essay title:");
-    if (newTitle) {
+  // Rename session
+  const editSessionName = async (sessionId: string) => {
+    const currentSession = sessions.find(s => s.id === sessionId);
+    const newTitle = prompt("Enter the new session title:", currentSession?.title || "");
+    
+    if (newTitle !== null) { // Only proceed if user didn't cancel
       try {
         const res = await fetch(`/api/sessions/${sessionId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: newTitle, updatedAt: new Date() }), // retrieve da
+          body: JSON.stringify({ title: newTitle }),
         });
 
         if (res.ok) {
@@ -103,25 +111,23 @@ export default function Dashboard() {
               session.id === sessionId ? { ...session, title: newTitle } : session
             )
           );
-          alert("Essay name updated successfully!");
         } else {
-          console.error("Failed to update essay name");
+          console.error("Failed to update session name");
         }
       } catch (error) {
-        console.error("Error updating essay name:", error);
+        console.error("Error updating session name:", error);
       }
     }
   };
 
-  // Delete session function
+  // Delete session function - fixed to use the correct API endpoint
   const deleteSession = async (sessionId: string) => {
     const confirmDelete = confirm("Are you sure you want to delete this session?");
     if (!confirmDelete) return;
     
     try {
-      // Change this line to use query parameters as expected by the API
       const res = await fetch(`/api/sessions?sessionId=${sessionId}`, { method: "DELETE" });
-  
+
       if (res.ok) {
         setSessions((prev) => prev.filter((session) => session.id !== sessionId));
       } else {
@@ -187,29 +193,37 @@ export default function Dashboard() {
               key={session.id}
               className="p-4 bg-white rounded-lg shadow hover:shadow-lg dark:bg-gray-800 transition"
             >
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center mb-2">
                 <div
                   onClick={() => openSession(session.id)}
-                  className="w-full cursor-pointer"
+                  className="cursor-pointer flex-grow overflow-hidden mr-2"
                 >
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                     {session.title || 'Untitled Session'}
                   </h2>
                 </div>
-                <button
-                  onClick={() => editEssayName(session.id)}
-                  className="ml-2 text-blue-600 hover:text-blue-800 transition"
-                  aria-label="Edit Session"
-                >
-                  <PencilIcon className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => deleteSession(session.id)}
-                  className="ml-2 text-red-600 hover:text-red-800 transition"
-                  aria-label="Delete Session"
-                >
-                  <TrashIcon className="w-5 h-5" />
-                </button>
+                <div className="flex-shrink-0 flex">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      editSessionName(session.id);
+                    }}
+                    className="ml-1 text-blue-600 hover:text-blue-800 transition p-1"
+                    aria-label="Edit Session"
+                  >
+                    <PencilIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSession(session.id);
+                    }}
+                    className="ml-1 text-red-600 hover:text-red-800 transition p-1"
+                    aria-label="Delete Session"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-gray-500">
                 Last updated: {new Date(session.updatedAt).toLocaleString()}
@@ -226,4 +240,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
