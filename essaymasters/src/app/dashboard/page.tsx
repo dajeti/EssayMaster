@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MagnifyingGlassIcon, PlusCircleIcon, TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
-
+import Header from "../Components/Header";
 // Enhanced interface to match both implementations
 interface Session {
   id: string;
@@ -149,7 +149,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Dashboard</h1>
+      <Header />
+      <h1 className="pt-20 text-3xl font-bold text-gray-900 dark:text-white mb-4">Dashboard</h1>
 
       {/* Search & New Session */}
       <div className="flex justify-between items-center mb-6">
@@ -224,3 +225,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

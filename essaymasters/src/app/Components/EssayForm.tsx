@@ -131,30 +131,138 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
   }
 
   // Rebuild the highlight HTML
+  // function highlightSnippets(
+  //   plainText: string,
+  //   sugs: FeedbackSuggestion[],
+  //   hoverId: string | null
+  // ) {
+  //   let result = plainText;
+  //   const active = sugs.filter((s) => !s.resolved);
+  //   // Sort so longer snippets get replaced first
+  //   active.sort((a, b) => b.snippet.length - a.snippet.length);
+
+  //   for (const sug of active) {
+  //     const escapedSnippet = sug.snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  //     const snippetRegex = new RegExp(escapedSnippet, "g");
+
+  //     const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
+  //     result = result.replace(
+  //       snippetRegex,
+  //       `<mark class="${colorClass}">${sug.snippet}</mark>`
+  //     );
+  //   }
+
+  //   setHighlightedEssay(result);
+  // } // original naive implementation
+  
   function highlightSnippets(
     plainText: string,
     sugs: FeedbackSuggestion[],
     hoverId: string | null
   ) {
-    let result = plainText;
+    // Filter out resolved suggestions
     const active = sugs.filter((s) => !s.resolved);
-    // Sort so longer snippets get replaced first
+    
+    // Sort so longer snippets get replaced first to avoid nested replacements
     active.sort((a, b) => b.snippet.length - a.snippet.length);
-
-    for (const sug of active) {
-      const escapedSnippet = sug.snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const snippetRegex = new RegExp(escapedSnippet, "g");
-
-      const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
-      result = result.replace(
-        snippetRegex,
-        `<mark class="${colorClass}">${sug.snippet}</mark>`
-      );
+    
+    // Function to normalize text for comparison
+    function normalize(text: string) {
+      return text
+        .replace(/\s+/g, " ")     // collapse multiple spaces/newlines to single space
+        .replace(/\u00A0/g, " ")  // normalize non-breaking spaces
+        .trim();
     }
-
-    setHighlightedEssay(result);
+    
+    // Prepare the normalized versions for better matching
+    const normalizedPlainText = normalize(plainText);
+    
+    // Start with the original text
+    let textWithMarks = plainText;
+    
+    // Array to track positions that have been marked
+    // This prevents overlapping highlights
+    const markedPositions: [number, number][] = [];
+    
+    for (const sug of active) {
+      const normalizedSnippet = normalize(sug.snippet);
+      const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
+      
+      // Try to find all positions of this snippet
+      let searchText = normalizedPlainText;
+      let startPos = 0;
+      let searchPos = 0;
+      
+      while (searchPos !== -1) {
+        searchPos = searchText.indexOf(normalizedSnippet, startPos);
+        
+        if (searchPos !== -1) {
+          // Calculate the actual start position in the original text
+          // We need to find the corresponding position in original text
+          const beforeNormalized = normalizedPlainText.substring(0, searchPos);
+          const charCountNormalized = beforeNormalized.length;
+          
+          // Find the closest matching position in the original text
+          let originalPos = 0;
+          let normalizedCounter = 0;
+          let originalText = plainText;
+          
+          // This loop attempts to map normalized position to original position
+          for (originalPos = 0; originalPos < originalText.length; originalPos++) {
+            if (normalizedCounter >= charCountNormalized) break;
+            
+            // Skip extra whitespace in original that was normalized
+            if (originalText[originalPos].match(/\s/) && 
+                originalPos + 1 < originalText.length && 
+                originalText[originalPos + 1].match(/\s/)) {
+              continue;
+            }
+            
+            normalizedCounter++;
+          }
+          
+          // Find end position by counting original characters
+          // This is an approximation that assumes snippet length is similar
+          const snippetLength = sug.snippet.length;
+          let endPos = originalPos + snippetLength;
+          
+          // Adjust end position to match word boundaries
+          while (endPos < plainText.length && !plainText[endPos].match(/\s/)) {
+            endPos++;
+          }
+          
+          // Check if this position overlaps with any already marked positions
+          const overlapping = markedPositions.some(
+            ([start, end]) => 
+              (originalPos >= start && originalPos < end) || 
+              (endPos > start && endPos <= end) ||
+              (originalPos <= start && endPos >= end)
+          );
+          
+          if (!overlapping) {
+            // Extract the actual text from the original
+            const actualSnippet = plainText.substring(originalPos, endPos);
+            const escapedSnippet = actualSnippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Replace this specific instance
+            textWithMarks = textWithMarks.replace(
+              new RegExp(escapedSnippet, "g"),
+              `<mark class="${colorClass}">${actualSnippet}</mark>`
+            );
+            
+            // Track this marked position
+            markedPositions.push([originalPos, endPos]);
+          }
+          
+          // Move to next position
+          startPos = searchPos + normalizedSnippet.length;
+        }
+      }
+    }
+    
+    setHighlightedEssay(textWithMarks);
   }
-
+  
   // Handle user typing
   const savedSelection = useRef<number | null>(null);
 
@@ -208,7 +316,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
 
   return (
     <ThemeProvider attribute="class">
-      <div className="flex flex-col w-full h-screen relative bg-white dark:bg-darker-custom text-black">
+      <div className="pt-20 flex flex-col w-full h-screen bg-white dark:bg-darker-custom text-black">
         {/* Top-level Loading Modal */}
         <div className="z-[9999]">
           <LoadingModal isLoading={isLoading} />
@@ -216,7 +324,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
 
         {/* We'll use a two-column layout that consumes full height,
             giving each column its own vertical scroll. */}
-        <div className="flex flex-1 h-full overflow-hidden">
+        <div className="flex flex-1 h-[calc(100vh-6rem)] overflow-hidden">
           {/* LEFT: the essay editor */}
           <div className="w-2/3 flex flex-col h-full border-r border-gray-200">
             <div className="p-4">
