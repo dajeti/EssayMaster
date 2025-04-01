@@ -24,10 +24,8 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
 
   const [hoveringId, setHoveringId] = useState<string | null>(null);
 
-  // For contentEditable, we also maintain a "last known HTML" to avoid repeated merges
   const editableRef = useRef<HTMLDivElement>(null);
 
-  // Debounce for saving to server
   const [debouncedEssay] = useDebounce(rawEssay, 2000);
 
   useEffect(() => {
@@ -42,7 +40,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
         const data = await res.json();
         if (data.essay) {
           setRawEssay(data.essay);
-          setHighlightedEssay(data.essay); // no highlights yet
+          setHighlightedEssay(data.essay);
         }
       }
     } catch (error) {
@@ -52,7 +50,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     }
   }
 
-  // Save to server
+  // Auto-save
   useEffect(() => {
     if (debouncedEssay) {
       saveEssay(debouncedEssay);
@@ -131,7 +129,7 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     setHoveringId(sugId || null);
     highlightSnippets(rawEssay, suggestions, sugId || null);
   }
-  
+
   // Rebuild the highlight HTML
   function highlightSnippets(
     plainText: string,
@@ -140,14 +138,13 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
   ) {
     let result = plainText;
     const active = sugs.filter((s) => !s.resolved);
+    // Sort so longer snippets get replaced first
     active.sort((a, b) => b.snippet.length - a.snippet.length);
 
     for (const sug of active) {
-      // Modify the replacement to escape regex special characters
       const escapedSnippet = sug.snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const snippetRegex = new RegExp(escapedSnippet, "g");
-      // const snippetRegex = new RegExp(sug.snippet, "g");
-      
+
       const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
       result = result.replace(
         snippetRegex,
@@ -158,18 +155,13 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     setHighlightedEssay(result);
   }
 
-  // ***** CRUCIAL for "contentEditable" approach *****
-  // Whenever user types in the editable div, we parse out the raw text by removing <mark> etc.
-  // Then we re-run highlight with suggestions.
-  //new changes
-  // Add a ref to store the text offset of the cursor
+  // Handle user typing
   const savedSelection = useRef<number | null>(null);
 
-  // Modify handleEditableInput to save cursor position
   function handleEditableInput() {
     if (!editableRef.current) return;
 
-    // Save current cursor position as text offset
+    // Save cursor position
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
@@ -185,7 +177,6 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     highlightSnippets(rawNoMarks, suggestions, hoveringId);
   }
 
-  // Add useEffect to restore cursor position
   useEffect(() => {
     if (editableRef.current && savedSelection.current !== null) {
       const textNodeInfo = getTextNodeAtOffset(editableRef.current, savedSelection.current);
@@ -201,11 +192,10 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     }
   }, [highlightedEssay]);
 
-  // Add helper function to find text node
   function getTextNodeAtOffset(element: Node, offset: number) {
     let node: Node | null = element;
     let currentOffset = 0;
-    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     while ((node = walker.nextNode())) {
       const textLength = node.textContent?.length || 0;
       if (currentOffset + textLength >= offset) {
@@ -215,58 +205,63 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     }
     return null;
   }
-  // changes end
+
   return (
     <ThemeProvider attribute="class">
-    <div className="flex flex-col w-full min-h-screen pt-6 mt-14 relative bg-white dark:bg-darker-custom text-black">
-      {/* Make sure the modal is on top of EVERYTHING */}
-      <div className="z-[9999]">
-        <LoadingModal isLoading={isLoading} />
-      </div>
+      <div className="flex flex-col w-full h-screen relative bg-white dark:bg-darker-custom text-black">
+        {/* Top-level Loading Modal */}
+        <div className="z-[9999]">
+          <LoadingModal isLoading={isLoading} />
+        </div>
 
-      <div className="flex flex-1 h-full overflow-hidden">
-        {/* LEFT: contentEditable with highlights */}
-        <div className="w-2/3 border-r border-gray-200 p-4 flex flex-col relative">
-          <h2 className="text-xl font-bold text-gray-700 mb-3 dark:text-white">Your Essay</h2>
+        {/* We'll use a two-column layout that consumes full height,
+            giving each column its own vertical scroll. */}
+        <div className="flex flex-1 h-full overflow-hidden">
+          {/* LEFT: the essay editor */}
+          <div className="w-2/3 flex flex-col h-full border-r border-gray-200">
+            <div className="p-4">
+              <h2 className="text-xl font-bold text-gray-700 mb-3 dark:text-white">Your Essay</h2>
+            </div>
 
-          <div className="flex-1 border rounded p-3 dark:bg-blue-custom-dark overflow-auto">
-            <div
-              ref={editableRef}
-              className="text-base text-gray-700 leading-relaxed outline-none"
-              contentEditable // user can type here
-              onInput={handleEditableInput}
-              suppressContentEditableWarning
-              dangerouslySetInnerHTML={{ __html: highlightedEssay }}
+            {/* This area scrolls independently */}
+            <div className="flex-1 overflow-y-auto p-4 dark:bg-blue-custom-dark">
+              <div
+                ref={editableRef}
+                className="text-base text-gray-700 leading-relaxed outline-none dark:text-white"
+                contentEditable
+                onInput={handleEditableInput}
+                suppressContentEditableWarning
+                dangerouslySetInnerHTML={{ __html: highlightedEssay }}
+              />
+            </div>
+
+            <div className="p-4 border-t">
+              <label className="inline-block bg-blue-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-blue-500">
+                Upload PDF (Essay)
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={handlePdfUpload}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* RIGHT: feedback panel (TabsPanel) */}
+          <div className="w-1/3 h-full overflow-y-auto p-4 bg-white dark:bg-darker-custom">
+            <TabsPanel
+              sessionId={sessionId}
+              essay={rawEssay}
+              suggestions={suggestions}
+              onNewSuggestions={handleNewSuggestions}
+              onToggleResolved={toggleSuggestionResolved}
+              onHoverSuggestion={handleHoverSuggestion}
+              setParentLoading={setIsLoading}
             />
           </div>
-
-          <div className="mt-4">
-            <label className="inline-block bg-blue-600 text-white py-2 px-4 rounded cursor-pointer hover:bg-blue-500">
-              Upload PDF (Essay)
-              <input
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={handlePdfUpload}
-              />
-            </label>
-          </div>
-        </div>
-
-        {/* RIGHT: feedback panel */}
-        <div className="w-1/3 bg-white dark:bg-darker-custom p-4 flex flex-col">
-          <TabsPanel
-            sessionId={sessionId}
-            essay={rawEssay}
-            suggestions={suggestions}
-            onNewSuggestions={handleNewSuggestions}
-            onToggleResolved={toggleSuggestionResolved}
-            onHoverSuggestion={handleHoverSuggestion}
-            setParentLoading={setIsLoading}
-          />
         </div>
       </div>
-    </div>
     </ThemeProvider>
   );
 }
