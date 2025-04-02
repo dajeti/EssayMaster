@@ -16,7 +16,7 @@ import { ThemeProvider } from "next-themes";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface CriteriaScores {
-  grammar: number;
+  SPAG: number;
   clarity: number;
   structure: number;
   analysis: number;
@@ -32,18 +32,19 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
   const labels: string[] = [];
   const scores: number[] = [];
 
-  labels.push("Grammar");
-  scores.push(criteria.grammar);
-  labels.push("Clarity");
-  scores.push(criteria.clarity);
-  labels.push("Structure");
-  scores.push(criteria.structure);
-  labels.push("Analysis");
-  scores.push(criteria.analysis);
+  labels.push("SPAG");
+  scores.push(criteria.SPAG);
 
   if (criteria.markscheme !== null && criteria.markscheme !== undefined) {
-    labels.push("Markscheme");
-    scores.push(criteria.markscheme);
+    // labels.push("Markscheme");
+    // scores.push(criteria.markscheme);
+  } else{
+    labels.push("Clarity");
+    scores.push(criteria.clarity);
+    labels.push("Structure");
+    scores.push(criteria.structure);
+    labels.push("Analysis");
+    scores.push(criteria.analysis);
   }
 
   const data = {
@@ -53,7 +54,7 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
         label: "Score (out of 10)",
         data: scores,
         backgroundColor: [
-          "#FF6384", // grammar
+          "#FF6384", // SPAG
           "#36A2EB", // clarity
           "#FFCE56", // structure
           "#4BC0C0", // analysis
