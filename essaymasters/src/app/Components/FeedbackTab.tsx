@@ -7,7 +7,7 @@ interface FeedbackSuggestion {
   snippet: string;
   advice: string;
   resolved: boolean;
-  markSchemeReference?: string; // Add this field for mark scheme references
+  markSchemeReference?: string;
 }
 
 // For sub-scores
@@ -31,7 +31,7 @@ interface CriteriaReasons {
 // The shape of GPT's returned JSON
 interface GPTResponse {
   score: number | string;
-  totalPossibleScore?: number; // Add this to capture the denominator
+  totalPossibleScore?: number;
   criteria?: {
     SPAG?: number;
     clarity?: number;
@@ -56,6 +56,8 @@ interface CompleteFeedbackData {
   criteria: CriteriaScores | null;
   criteriaReasons: CriteriaReasons | null;
   suggestions: FeedbackSuggestion[];
+  isUsingMarkScheme: boolean; // Add this flag to track session type
+  sessionId: string; // Add sessionId for validation
 }
 
 interface FeedbackTabProps {
@@ -96,15 +98,56 @@ export default function FeedbackTab({
   const [isFeedbackDataLoading, setIsFeedbackDataLoading] = useState(false);
   // Track if we're using a markscheme for UI display
   const [isUsingMarkScheme, setIsUsingMarkScheme] = useState(false);
+  // Track if state has been modified since last save
+  const [isStateModified, setIsStateModified] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // -------------------------
+  // Save feedback data whenever relevant states change
+  // -------------------------
+  useEffect(() => {
+    // Only trigger if data has been modified and we have a valid sessionId
+    if (isStateModified && sessionId) {
+      const saveTimeout = setTimeout(() => {
+        saveFeedbackData();
+        setIsStateModified(false);
+      }, 500); // Debounce saves to prevent excessive API calls
+      
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [isStateModified, sessionId, score, totalPossibleScore, criteria, criteriaReasons, suggestions, isUsingMarkScheme]);
+
+  // Function to mark state as modified
+  const markStateModified = () => {
+    setIsStateModified(true);
+  };
 
   // -------------------------
   // Load saved feedback data on mount or when sessionId changes
   // -------------------------
   useEffect(() => {
-    loadFeedbackData();
+    // Reset states when sessionId changes
+    resetStates();
+    // Then load feedback data for the new session
+    if (sessionId) {
+      loadFeedbackData();
+      fetchMarkScheme();
+    }
   }, [sessionId]);
+
+  // Function to reset all states
+  function resetStates() {
+    setScore("N/A");
+    setTotalPossibleScore(null);
+    setCriteria(null);
+    setCriteriaReasons(null);
+    setMarkSchemeUrl("");
+    setMarkSchemeContent("");
+    setIsUsingMarkScheme(false);
+    onNewSuggestions([]);
+    setIsStateModified(false);
+  }
 
   async function loadFeedbackData() {
     if (!sessionId) return;
@@ -124,16 +167,20 @@ export default function FeedbackTab({
             data.feedback
           );
 
+          // Validate that this feedback belongs to the current session
+          if (parsedFeedback.sessionId && parsedFeedback.sessionId !== sessionId) {
+            console.warn("Loaded feedback data doesn't match current session, skipping");
+            return;
+          }
+
           // Restore all feedback state
           setScore(parsedFeedback.score || "N/A");
           setTotalPossibleScore(parsedFeedback.totalPossibleScore || null);
           setCriteria(parsedFeedback.criteria || null);
           setCriteriaReasons(parsedFeedback.criteriaReasons || null);
 
-          // Check if we were using a markscheme (based on criteria)
-          setIsUsingMarkScheme(
-            parsedFeedback.criteria?.markscheme !== undefined
-          );
+          // Set markscheme usage flag consistently with stored data
+          setIsUsingMarkScheme(parsedFeedback.isUsingMarkScheme || false);
 
           // Only update suggestions if they exist and the array is not empty
           if (
@@ -167,6 +214,8 @@ export default function FeedbackTab({
         criteria,
         criteriaReasons,
         suggestions,
+        isUsingMarkScheme, // Include the flag to track session type
+        sessionId, // Include sessionId for validation on load
       };
 
       const res = await fetch(`/api/feedback/${sessionId}`, {
@@ -184,25 +233,19 @@ export default function FeedbackTab({
   }
 
   // -------------------------
-  // Modified onToggleResolved to save feedback data after toggle
+  // Modified onToggleResolved to mark state as modified
   // -------------------------
-  const handleToggleResolved = async (sugId: string) => {
+  const handleToggleResolved = (sugId: string) => {
     onToggleResolved(sugId);
-
-    // Wait a small amount of time for state to update
-    setTimeout(() => {
-      saveFeedbackData();
-    }, 100);
+    markStateModified();
   };
 
   // -------------------------
-  // 1) Check for existing markscheme (optional)
+  // Check for existing markscheme
   // -------------------------
-  useEffect(() => {
-    fetchMarkScheme();
-  }, []);
-
   async function fetchMarkScheme() {
+    if (!sessionId) return;
+    
     setIsMarkUploadLoading(true);
     try {
       const res = await fetch(`/api/marks/${sessionId}`);
@@ -214,6 +257,7 @@ export default function FeedbackTab({
       if (data.markScheme?.fileUrl) {
         setMarkSchemeUrl(data.markScheme.fileUrl);
         setIsUsingMarkScheme(true);
+        markStateModified();
 
         // Fetch and read the mark scheme content
         if (data.markScheme.fileUrl) {
@@ -252,13 +296,14 @@ export default function FeedbackTab({
       }
 
       setMarkSchemeContent(extractedText.trim());
+      markStateModified();
     } catch (error) {
       console.error("Error reading mark scheme PDF:", error);
     }
   }
 
   // -------------------------
-  // 2) PDF upload for Mark Scheme
+  // PDF upload for Mark Scheme
   // -------------------------
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -295,6 +340,7 @@ export default function FeedbackTab({
 
       setMarkSchemeUrl(uploadData.url);
       setIsUsingMarkScheme(true);
+      markStateModified();
 
       // Read the content of the file
       const reader = new FileReader();
@@ -313,6 +359,7 @@ export default function FeedbackTab({
           }
 
           setMarkSchemeContent(extractedText.trim());
+          markStateModified();
         } catch (parseErr) {
           console.error("Error reading PDF text:", parseErr);
         }
@@ -352,6 +399,7 @@ export default function FeedbackTab({
       setMarkSchemeUrl("");
       setMarkSchemeContent("");
       setIsUsingMarkScheme(false);
+      markStateModified();
       alert("Mark scheme removed successfully!");
     } catch (error: any) {
       console.error("Error removing mark scheme:", error);
@@ -362,7 +410,7 @@ export default function FeedbackTab({
   }
 
   // -------------------------
-  // 3) Generate Feedback Button
+  // Generate Feedback Button
   // -------------------------
   async function handleGenerateFeedback() {
     if (!essay.trim()) {
@@ -399,7 +447,7 @@ export default function FeedbackTab({
             "score": [appropriate score based on mark scheme scale],
             "totalPossibleScore": [total possible score from the mark scheme],
             "criteria": {
-              "SPAG": [0-10], 
+              "SPAG": [0-10], // if there is no major mistakes just give a 8 at least
               "markscheme": [0-10] 
             },
             "criteriaReasons": {
@@ -530,11 +578,9 @@ export default function FeedbackTab({
       const sugs = parsed.suggestions || [];
       sugs.forEach((sug) => (sug.resolved = false));
       onNewSuggestions(sugs);
-
-      // 6) Save all feedback data to database
-      setTimeout(() => {
-        saveFeedbackData();
-      }, 100);
+      
+      // Mark state as modified
+      markStateModified();
     } catch (err: any) {
       console.error("Error generating feedback:", err);
       alert("Error: " + err.message);

@@ -12,8 +12,14 @@ import {
 } from "chart.js";
 import { ThemeProvider } from "next-themes";
 
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface CriteriaScores {
   SPAG: number;
@@ -33,12 +39,12 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
   const scores: number[] = [];
 
   labels.push("SPAG");
-  scores.push(criteria.SPAG);
+  scores.push(criteria.SPAG || 0);
 
   if (criteria.markscheme !== null && criteria.markscheme !== undefined) {
     // labels.push("Markscheme");
     // scores.push(criteria.markscheme);
-  } else{
+  } else {
     labels.push("Clarity");
     scores.push(criteria.clarity);
     labels.push("Structure");
@@ -88,10 +94,9 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
 
   return (
     <ThemeProvider attribute="class">
-
-    <div className="h-64 mt-4">
-      <Bar data={data} options={options} />
-    </div>
+      <div className="h-64 mt-4">
+        <Bar data={data} options={options} />
+      </div>
     </ThemeProvider>
   );
 }

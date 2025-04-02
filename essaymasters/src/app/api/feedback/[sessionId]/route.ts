@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // GET: Load feedback from DB
-export async function GET(
+export async function GET (
   request: Request,
   { params }: { params: { sessionId: string } }
 ) {
@@ -28,7 +28,7 @@ export async function GET(
 }
 
 // PUT: Save feedback to DB
-export async function PUT(
+export async function PUT (
   request: Request,
   { params }: { params: { sessionId: string } }
 ) {

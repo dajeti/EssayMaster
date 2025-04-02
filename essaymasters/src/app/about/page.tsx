@@ -21,7 +21,7 @@ export default function Home() {
           <hr className="w-96 h-1 mx-auto my-4 bg-gray-300 border-0 rounded-sm md:my-10 dark:bg-gray-600" />
 
           <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white -mt-10">
-            Need technical support or have suggestions to enhance your experience (and others&apos;)? Reach out to us at the following email address:
+            Need technical support or have suggestions to enhance your experience? Reach us at:
           </p>
 
           <a
