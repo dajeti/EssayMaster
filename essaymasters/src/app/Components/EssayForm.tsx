@@ -129,31 +129,6 @@ export default function EssayForm({ sessionId }: { sessionId: string }) {
     setHoveringId(sugId || null);
     highlightSnippets(rawEssay, suggestions, sugId || null);
   }
-
-  // Rebuild the highlight HTML
-  // function highlightSnippets(
-  //   plainText: string,
-  //   sugs: FeedbackSuggestion[],
-  //   hoverId: string | null
-  // ) {
-  //   let result = plainText;
-  //   const active = sugs.filter((s) => !s.resolved);
-  //   // Sort so longer snippets get replaced first
-  //   active.sort((a, b) => b.snippet.length - a.snippet.length);
-
-  //   for (const sug of active) {
-  //     const escapedSnippet = sug.snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  //     const snippetRegex = new RegExp(escapedSnippet, "g");
-
-  //     const colorClass = sug.id === hoverId ? "bg-yellow-300" : "bg-yellow-100";
-  //     result = result.replace(
-  //       snippetRegex,
-  //       `<mark class="${colorClass}">${sug.snippet}</mark>`
-  //     );
-  //   }
-
-  //   setHighlightedEssay(result);
-  // } // original naive implementation
   
   function highlightSnippets(
     plainText: string,
