@@ -16,24 +16,34 @@ export default function Home() {
             It provides detailed feedback for each edit and grades essays across categories. A built-in scoring system tracks progress,
             making learning measurable and rewarding.
 
-          </p>
+      <Header />
+      
+      <main className="flex flex-col items-center pt-12 w-96">
+        <p className="flex flex-col items-center text-left text-lg text-black dark:text-white">
+        EssayMaster is a web app that helps students improve their essay-writing with AI-powered feedback. 
+        Users can upload essays as PDFs or text and choose from features like grammar, clarity, tone, and length. 
+        It provides detailed feedback for each edit and grades essays across categories. A built-in scoring system tracks progress, 
+        making learning measurable and rewarding.
+        </p>
 
-          <hr className="w-96 h-1 mx-auto my-4 bg-gray-300 border-0 rounded-sm md:my-10 dark:bg-gray-600" />
+  
+        
+        <br /><h2 className="text-black dark:text-white">========================================</h2>
 
-          <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white -mt-10">
-            Need technical support or have suggestions to enhance your experience? Reach us at:
-          </p>
+        <p className="flex pt-8 flex-col items-center text-left text-lg text-black dark:text-white">
+        Need technical support or have suggestions to enhance your experience (and others&apos;)? Reach out to us at the following email address:
+        </p>
+        
+        <a
+          href="mailto:EssayMasters1@outlook.com"
+          title="Email us"
+          className="font-normal text-blue-500 flex flex-col items-center text-left text-lg pt-4 hover:underline"
+        >
+          EssayMasters1@outlook.com
+        </a>
 
-          <a
-            href="mailto:EssayMasters1@outlook.com"
-            title="Email us"
-            className="font-normal text-blue-500 flex flex-col items-center text-left text-lg pt-4 hover:underline"
-          >
-            EssayMasters1@outlook.com
-          </a>
-
-        </main>
-      </div>
+      </main>
+    </div>
     </ThemeProvider>
   );
 }
