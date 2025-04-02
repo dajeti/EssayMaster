@@ -10,45 +10,45 @@ const Questions = () => {
   const questions = [
     {
       id: 0,
-      question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+      question: "How does EssayMaster's AI analyse my essay",
       answer:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        "EssayMaster's AI reviews your essay by checking for errors in grammar, tone, clarity, and length. It then provides feedback on how to improve these aspects, offering specific suggestions for each issue.",
     },
     {
         id: 1,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "What file formats can I upload to EssayMaster?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "You can upload your essay as either a text input or a PDF file. The system can process both formats for analysis and feedback.",
       },
       {
         id: 2,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "How does EssayMaster generate feedback for my essay?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "EssayMaster uses natural language processing (NLP) to understand your writing and provide suggestions for grammar corrections, clearer sentence structures, and improved tone based on your selected features.",
       },
       {
         id: 3,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "Can I customise the feedback categories?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "Yes, you can create custom feedback categories based on your needs. In addition to the default categories like grammar and tone, you can request feedback on other specific areas of your essay.",
       },
       {
         id: 4,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "What does the scoring system evaluate?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "The scoring system evaluates your essay based on predefined categories like grammar, clarity, tone, and length. Each category is assigned a grade, and an overall average score is calculated to track your progress.",
       },
       {
         id: 5,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "How is my progress tracked over time?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "EssayMaster tracks your progress by recording your scores for each essay. Visual charts display how your performance in different categories improves over time, helping you see your writing development.",
       },
       {
         id: 6,
-        question: "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+        question: "How accurate is the feedback provided by EssayMaster?",
         answer:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+          "EssayMaster's feedback is based on advanced AI algorithms and natural language processing, ensuring high accuracy. However, it's recommended to review the suggestions as the AI may not catch every nuance in complex writing.",
       },
       // Add more questions here
 
