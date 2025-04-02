@@ -18,6 +18,16 @@ cd existing_repo
 git remote add origin https://git.cs.kent.ac.uk/gm529/essay-masters.git
 git branch -M main
 git push -uf origin main
+cd essaymaster/src
+npm install
+npm run dev
+
+INFO:
+IF you get a ERROR 501, please follow these instructions:
+
+On a second terminal do the following commands:
+cd essaymaster/src
+npx prisma generate
 ```
 
 ## Integrate with your tools
