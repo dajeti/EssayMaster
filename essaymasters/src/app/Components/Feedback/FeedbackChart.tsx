@@ -40,15 +40,12 @@ export default function FeedbackChart({ criteria }: FeedbackChartProps) {
 
   labels.push("SPAG");
   scores.push(criteria.SPAG || 0);
-
+  labels.push("Clarity");
+  scores.push(criteria.clarity);
+  labels.push("Structure");
+  scores.push(criteria.structure);
   if (criteria.markscheme !== null && criteria.markscheme !== undefined) {
-    // labels.push("Markscheme");
-    // scores.push(criteria.markscheme);
   } else {
-    labels.push("Clarity");
-    scores.push(criteria.clarity);
-    labels.push("Structure");
-    scores.push(criteria.structure);
     labels.push("Analysis");
     scores.push(criteria.analysis);
   }

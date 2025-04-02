@@ -447,11 +447,15 @@ export default function FeedbackTab({
             "score": [appropriate score based on mark scheme scale],
             "totalPossibleScore": [total possible score from the mark scheme],
             "criteria": {
-              "SPAG": [0-10], // if there is no major mistakes just give a 8 at least
-              "markscheme": [0-10] 
+              "SPAG": (0-10), // if there is no major mistakes just give a 8 at least
+              "clarity": number (0-10),  // if there is no major mistakes just give a 8 at least
+              "structure": number (0-10), // if there is no major mistakes just give a 7 at least
+              "markscheme": (0-10)
             },
             "criteriaReasons": {
               "SPAG": [SPAG assessment - spelling, punctuation, grammar],
+              "clarity": string,
+              "structure" : string,
               "markscheme": [detailed explanation referencing specific mark scheme criteria]
             },
             "suggestions": [
@@ -542,6 +546,8 @@ export default function FeedbackTab({
         if (markSchemeUrl) {
           setCriteria({
             SPAG: parsed.criteria.SPAG ?? 0,
+            clarity: parsed.criteria.clarity ?? 0,
+            structure: parsed.criteria.structure ?? 0,
             markscheme: parsed.criteria.markscheme ?? 0,
           });
           setIsUsingMarkScheme(true);
@@ -564,6 +570,8 @@ export default function FeedbackTab({
         if (markSchemeUrl) {
           setCriteriaReasons({
             SPAG: parsed.criteriaReasons.SPAG,
+            clarity: parsed.criteriaReasons.clarity,
+            structure: parsed.criteriaReasons.structure,
             markscheme: parsed.criteriaReasons.markscheme,
           });
         } else {
