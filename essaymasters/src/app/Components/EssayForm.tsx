@@ -7,7 +7,7 @@ import { useDebounce } from "use-debounce";
 import TabsPanel from "./TabsPanel";
 import { ThemeProvider } from "next-themes";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 interface FeedbackSuggestion {
   id: string;
