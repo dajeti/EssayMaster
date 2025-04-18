@@ -20,14 +20,12 @@ git branch -M main
 git push -uf origin main
 cd essaymaster/src
 npm install
-npm run dev
-
-INFO:
-IF you get a ERROR 501, please follow these instructions:
+npx prisma generate
 
 On a second terminal do the following commands:
-cd essaymaster/src
-npx prisma generate
+cd essaymaster/src/app
+npm install (or yarn install if you are using yarn)
+npm run dev (or yarn dev if you are using yarn)
 ```
 
 ## Integrate with your tools
