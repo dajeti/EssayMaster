@@ -31,31 +31,31 @@ AI-powered essay analysis and feedback platform built with Next.js and OpenAI. D
 
 ### 1. **Clone the Repository**
 
-```bash
 git clone https://github.com/dajeti/EssayMaster.git
 cd EssayMaster
+
 2. Install Dependencies
-bash
-Copy
-Edit
+
 cd src
 npm install
 npx prisma generate
+
 In a second terminal:
 
-bash
-Copy
-Edit
 cd src/app
 npm install
 npm run dev
+
+
 🧠 Environment Variables
 Create a .env file in your project root and add the following:
 
 env
 Copy
 Edit
-# OpenAI
+
+
+# OpenAI (You can find or generate one for a free trial here: https://platform.openai.com/settings/organization/api-keys)
 OPENAI_API_KEY=your-openai-api-key
 
 # MongoDB
@@ -88,7 +88,6 @@ Get instant feedback powered by GPT-4
 Coming soon...
 
 🚧 Roadmap
- Add file upload support for PDF/DOCX
 
  Track changes and highlight errors
 
@@ -118,11 +117,3 @@ Or reach out via GitHub discussions
 
 📃 License
 MIT © 2025 — dajeti
-
-yaml
-Copy
-Edit
-
----
-
-You're all set! Just paste that into your `README.md`, commit, and push. Let me know if you w
