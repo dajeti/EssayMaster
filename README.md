@@ -50,12 +50,10 @@ npm run dev
 🧠 Environment Variables
 Create a .env file in your project root and add the following:
 
-env
-Copy
-Edit
 
+# OpenAI
 
-# OpenAI (You can find or generate one for a free trial here: https://platform.openai.com/settings/organization/api-keys)
+(You can find or generate one for a free trial here: https://platform.openai.com/settings/organization/api-keys)
 OPENAI_API_KEY=your-openai-api-key
 
 # MongoDB
