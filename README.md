@@ -34,10 +34,13 @@ AI-powered essay analysis and feedback platform built with Next.js and OpenAI. D
 git clone https://github.com/dajeti/EssayMaster.git
 cd EssayMaster
 
+First install NodeJS on your machine (you can do this via Homebrew if you are on Mac) then
+follow the steps below.
+
 2. Install Dependencies
 
-cd src
-npm install
+cd essaymaster/src
+npm install (might have to do this step in the root 'essaymaster' folder)
 npx prisma generate
 
 In a second terminal:
@@ -69,16 +72,28 @@ GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
 🔒 Never commit this file to version control. It’s already included in .gitignore.
 
+IMPORTANT - Your .env file should look like the one below (you have to add your own API key for the AI):
+
+MONGODB_URI=Developer_test:e55aymaster@cluster0.mongodb.net/essaymasterdb?retryWrites=true&w=majority
+DATABASE_URL="mongodb+srv://Developer_test:e55aymaster@essaymasterdb.yzhv4.mongodb.net/essaymasterdb?retryWrites=true&w=majority"
+NEXTAUTH_SECRET="your-random-nextauth-secret"
+NEXTAUTH_URL=http://localhost:3000
+GITHUB_CLIENT_ID="Ov23li6iRn0hPdEPkHOu"
+GITHUB_CLIENT_SECRET="191fc0b2e25aad61f53da10dc7226a6642f6595b"
+OPENAI_API_KEY=your-openai-api-key
+
 📄 Usage
 Once the app is running:
 
 Navigate to http://localhost:3000
 
-Sign in using GitHub OAuth (if enabled)
+Register your login and navigate back to the login page to login with your new credentials
+
+Once in the dashbaord, click on the 'Home' tab on the header.....
 
 Paste or write an essay into the text area
 
-Click the "Analyze" button
+Click the "Generate Feedback" button
 
 Get instant feedback powered by GPT-4
 
@@ -87,11 +102,11 @@ Coming soon...
 
 🚧 Roadmap
 
- Track changes and highlight errors
+ Make dashboard live
 
  Support for other languages
 
- User authentication & saved history
+ Markscheme uploads to work against AI API
 
 🤝 Contributing
 Pull requests welcome! If you’d like to contribute:
