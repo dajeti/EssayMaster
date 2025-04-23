@@ -72,7 +72,9 @@ GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
 🔒 Never commit this file to version control. It’s already included in .gitignore.
 
-IMPORTANT - Your .env file should look like the one below (you have to add your own API key for the AI):
+# IMPORTANT - Your .env file should look like the one below (you have to add your own API key for the AI):
+
+You can just copy and paste this under the essaymaster folder and fill in your own credentials as said above:
 
 MONGODB_URI=Developer_test:e55aymaster@cluster0.mongodb.net/essaymasterdb?retryWrites=true&w=majority
 DATABASE_URL="mongodb+srv://Developer_test:e55aymaster@essaymasterdb.yzhv4.mongodb.net/essaymasterdb?retryWrites=true&w=majority"
