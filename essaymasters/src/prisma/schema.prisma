@@ -9,7 +9,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = "mongodb+srv://Developer_test:e55aymaster@essaymasterdb.yzhv4.mongodb.net/essaymasterdb?retryWrites=true&w=majority"
+  url      = "mongodb+srv://dajeti:essaymaster101@cluster1-essaymaster.zblppz5.mongodb.net/Cluster1-EssayMaster?retryWrites=true&w=majority&appName=Cluster1-EssayMaster"
 }
 
 model User {

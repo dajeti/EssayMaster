@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs"; // to compare hashed passwords
 
 
 // Replace <username>, <password>, and <dbname> with your actual details
-const uri = 'mongodb+srv://Developer_test:e55aymaster@cluster0.mongodb.net/essaymasterdb?retryWrites=true&w=majority';
+const uri = 'mongodb+srv://dajeti:essaymaster101@cluster1-essaymaster.zblppz5.mongodb.net/Cluster1-EssayMaster?retryWrites=true&w=majority&appName=Cluster1-EssayMaster';
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
